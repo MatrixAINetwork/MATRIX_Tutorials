@@ -9,7 +9,7 @@
 - [APPLICATION 应用](#application-%E5%BA%94%E7%94%A8)
 
 ## INTRO 介绍 
-- [MATRIX 商业白皮书中文版](https://github.com/MatrixAINetwork/WhitePaper/blob/master/MATRIX-%E5%95%86%E4%B8%9A%E7%89%88%E7%99%BD%E7%9A%AE%E4%B9%A6%20-%20CNV1.01.pdf)
+- [MATRIX 商业白皮书(中文版)](https://github.com/MatrixAINetwork/WhitePaper/blob/master/MATRIX-%E5%95%86%E4%B8%9A%E7%89%88%E7%99%BD%E7%9A%AE%E4%B9%A6%20-%20CNV1.01.pdf)
 
 ### Started 入门 
 
