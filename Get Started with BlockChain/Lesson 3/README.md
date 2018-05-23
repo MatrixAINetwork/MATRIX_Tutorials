@@ -4,12 +4,18 @@
 
 ![](https://i.imgur.com/EhjX7cE.png)
 
-1. 精通比特币-简介：[点我学习](http://8btc.com/article-1781-1.html)
+## 精通比特币-简介
+
+[点我学习](http://8btc.com/article-1781-1.html)
 
 ![](https://i.imgur.com/EhjX7cE.png)
 
-2. 精通比特币-前言：[点我学习](http://8btc.com/article-1782-1.html)
+## 精通比特币-前言
+
+[点我学习](http://8btc.com/article-1782-1.html)
 
 ![](https://i.imgur.com/ii15n96.png)
 
-3. 精通比特币-第1章 介绍：[点我学习](http://8btc.com/article-1783-1.html)
+## 精通比特币-第1章 介绍
+
+[点我学习](http://8btc.com/article-1783-1.html)
