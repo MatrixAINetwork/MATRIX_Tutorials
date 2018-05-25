@@ -96,10 +96,4 @@
 ![](https://i.imgur.com/kRNMlo7.png)
 
 
-![](https://i.imgur.com/YxDGVIg.png)
-
-
 ![](https://i.imgur.com/iyDk4Nd.png)
-
-
-![](https://i.imgur.com/8oIJCW4.png)
