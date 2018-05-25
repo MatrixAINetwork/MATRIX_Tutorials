@@ -1,4 +1,4 @@
-# 区块链架构及应用
+# 区块链架构
 
 
 ![](https://i.imgur.com/wGncL3C.png)
