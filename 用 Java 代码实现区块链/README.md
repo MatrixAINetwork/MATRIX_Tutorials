@@ -90,3 +90,109 @@
      }
      ...
 
+这个方法将会创建一个新的区块实例，产生合适的值，并分配前一个块的哈希（这将是链头的哈希），然后返回这个实例。
+
+在将区块添加到链中之前，可以通过将新区块的上一个哈希与链的最后一个区块（头）进行比较来验证区块，以确保它们匹配。SimpleBlockchain.java 描述了这一过程。
+
+     ....
+     public void addAndValidateBlock(Block<T> block) {
+
+     // 比较之前的区块哈希，如果有效则添加
+     Block<T> current = block;
+     for (int i = chain.size() - 1; i >= 0; i--) {
+     Block<T> b = chain.get(i);
+     if (b.getHash().equals(current.getPreviousHash())) {
+     current = b;
+     } else {
+
+     throw new RuntimeException("Block Invalid");
+     }
+
+     }
+
+     this.chain.add(block);
+     }
+     ...
+
+整个区块链通过循环整个链来验证，确保区块的哈希仍然与前一个区块的哈希匹配。
+
+以下是 SimpleBlockChain.java validate() 方法的实现。
+
+     ...
+     public boolean validate() {
+
+     String previousHash = null;
+     for (Block<T> block : chain) {
+     String currentHash = block.getHash();
+     if (!currentHash.equals(previousHash)) {
+     return false;
+     }
+
+     previousHash = currentHash;
+
+     }
+
+     return true;
+
+     }
+     ...
+
+你可以看到，试图以任何方式伪造交易数据或任何其他属性都是非常困难的。而且，随着链的增长，它会继续变得非常、非常、非常困难，基本上是不可能的 —— 除非量子计算机可用！
+
+### 添加交易
+区块链技术的另一个重要技术点是它是分布式的。区块链只增的特性很好地帮助了它在区块链网络的节点之间的复制。节点通常以点对点的方式进行通信，就像比特币那样，但不一定非得是这种方式。其他区块链实现使用分散的方法，比如使用基于 HTTP 协议的 API。这都是题外话了。
+交易可以代表任何东西。交易可以包含要执行的代码（例如，智能合约）或存储和追加有关某种业务交易的信息。
+
+##### 智能合约：旨在以数字形式来促进、验证或强制执行合约谈判及履行的计算机协议。
+就比特币而言，交易包含所有者账户中的金额和其他账户的金额（例如，在账户之间转移比特币金额）。交易中还包括公钥和账户 ID，因此传输需要保证安全。但这是比特币特有的。
+
+交易被添加到网络中并被池化；它们不在区块中或链本身中。
+
+这是区块链共识机制发挥作用的地方。现在有许多经过验证的共识算法和模式，不过那已经超出了本文的范围。
+
+挖矿是比特币区块链使用的共识机制。这就是下文讨论的共识类型。共识机制收集交易，用它们构建一个区块，然后将该区块添加到链中。区块链会在新的交易区块被添加之前验证它。
+
+
+### 默克尔树
+
+交易被哈希并添加到区块中。默克尔树被用来计算默克尔根哈希。默克尔树是一种内部节点的值是两个子节点值的哈希值的平衡二叉树。而默克尔根，就是默克尔树的根节点。
+
+该树用于区块交易的验证。如果在交易中更改了一些信息，默克尔根将失效。此外，在分布式中，它们还可以加速传输区块，因为该结构只允许添加和验证整个交易区块所需的单个交易哈希分支。
+
+以下是 Block.java 类中的方法，它从交易列表中创建了一个默克尔树。
+
+     ...
+     public List<String> merkleTree() {
+     ArrayList<String> tree = new ArrayList<>();
+     // 首先，
+     // 将所有交易的哈希作为叶子节点添加到树中。
+     for (T t : transactions) {
+     tree.add(t.hash());
+     }
+     int levelOffset = 0; // 当前处理的列表中的偏移量。
+     //  当前层级的第一个节点在整个列表中的偏移量。
+     // 每处理完一层递增，
+     // 当我们到达根节点时（levelSize == 1）停止。
+     for (int levelSize = transactions.size(); levelSize > 1; levelSize = (levelSize + 1) / 2) {
+     // 对于该层上的每一对节点：
+     for (int left = 0; left < levelSize; left += 2) {
+     // 在我们没有足够交易的情况下，
+     // 右节点和左节点
+     // 可以一样。
+     int right = Math.min(left + 1, levelSize - 1);
+     String tleft = tree.get(levelOffset + left);
+     String tright = tree.get(levelOffset + right);
+     tree.add(SHA256.generateHash(tleft + tright));
+     }
+     // 移动至下一层
+     levelOffset += levelSize;
+     }
+     return tree;
+     }
+
+     ...
+
+
+此方法用于计算区块的默克尔树根。伴随项目有一个默克尔树单元测试，它试图将交易添加到一个区块中，并验证默克尔根是否已经更改。
+
+
