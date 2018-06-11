@@ -196,3 +196,88 @@
 此方法用于计算区块的默克尔树根。伴随项目有一个默克尔树单元测试，它试图将交易添加到一个区块中，并验证默克尔根是否已经更改。
 
 
+下面是单元测试的源码。
+
+     ...
+     @Test
+     public void merkleTreeTest() {
+
+     // 创建链，添加交易
+
+     SimpleBlockchain<Transaction> chain1 = new SimpleBlockchain<Transaction>();
+
+     chain1.add(new Transaction("A")).add(new Transaction("B")).add(new Transaction("C")).add(new Transaction("D"));
+
+     // 获取链中的区块
+     Block<Transaction> block = chain1.getHead();
+
+     System.out.println("Merkle Hash tree :" + block.merkleTree());
+
+     //从区块中获取交易
+     Transaction tx = block.getTransactions().get(0);
+
+     // 查看区块交易是否有效，它们应该是有效的
+     block.transasctionsValid();
+     assertTrue(block.transasctionsValid());
+
+     // 更改交易数据
+     tx.setValue("Z");
+
+     //当区块的默克尔根与计算出来的默克尔树不匹配时，区块不应该是有效。
+     assertFalse(block.transasctionsValid());
+
+     }
+
+     ...
+
+此单元测试模拟验证交易，然后通过共识机制之外的方法改变区块中的交易，例如，如果有人试图更改交易数据。
+
+记住，区块链是只增的，当块区链数据结构在节点之间共享时，区块数据结构（包括默克尔根）被哈希并连接到其他区块。所有节点都可以验证新的区块，并且现有的区块可以很容易地被证明是有效的。因此，如果一个挖矿者想要添加一个伪造的区块或者节点来调整原有的交易是不可能的。
+
+### 挖矿和工作量证明
+在比特币世界中，将交易组合成区块，然后提交给链中的成员进行验证的过程叫做“挖矿”。
+
+更宽泛地说，在区块链中，这被称为共识。现在有好几种经过验证的分布式共识算法，使用哪种机制取决于你有一个公共的还是私有的区块链。我们的白皮书对此进行了更为深入的描述，但本文的重点是区块链的原理，因此这个例子中我们将使用一个工作量证明（POW）的共识机制。
+
+因此，挖掘节点将侦听由区块链执行的交易，并执行一个简单的数学任务。这个任务是用一个不断改变的一次性随机数（nonce）来生成带有一连串以 0 开头的区块哈希值，直到一个预设的哈希值被找到。
+
+Java 示例项目有一个 Miner.java 类，其中的 proofOfWork(Block block) 方法实现如下所示。
+
+     private String proofOfWork(Block block) {
+
+     String nonceKey = block.getNonce();
+     long nonce = 0;
+     boolean nonceFound = false;
+     String nonceHash = "";
+
+     Gson parser = new Gson();
+     String serializedData = parser.toJson(transactionPool);
+     String message = block.getTimeStamp() + block.getIndex() + block.getMerkleRoot() + serializedData
+     + block.getPreviousHash();
+
+     while (!nonceFound) {
+
+     nonceHash = SHA256.generateHash(message + nonce);
+     nonceFound = nonceHash.substring(0, nonceKey.length()).equals(nonceKey);
+     nonce++;
+
+     }
+
+     return nonceHash;
+
+     }
+
+同样，这是简化的，但是一旦收到一定量的交易，这个挖矿算法会为区块计算一个工作量证明的哈希。该算法简单地循环并创建块的SHA-256散列，直到产生前导数字哈希。
+
+这可能需要很多时间，这就是为什么特定的GPU微处理器已经被实现来尽可能快地执行和解决这个问题的原因。
+
+### 单元测试
+
+你可以在 GitHub上看到结合了这些概念的 Java 示例的 JUnit 测试。
+
+![](https://i.imgur.com/v5VpspG.png)
+
+运行一下，看看这个简单的区块链是如何工作的。
+
+另外，如果你是 C# 程序员的话，其实（我不会告诉任何人），我们也有用 C# 写的示例。下面是 C# 区块链实现的[示例](https://link.juejin.im/?target=https%3A%2F%2Fgithub.com%2Fin-the-keyhole%2Fkhs-blockchain-csharp-example)。
+
