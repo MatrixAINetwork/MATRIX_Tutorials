@@ -220,3 +220,150 @@ httpAddr := os.Getenv("ADDR") 将会从刚才我们创建的 .env 文件中拉�
     }
 
 注意到 mutex 的 lock（加锁） 和 unlock（解锁）。在写入一个新的区块之前，需要给区块链加锁，否则多个写入将会导致数据竞争。精明的读者还会注意到 generateBlock 函数。这是处理工作量证明的关键函数。我们稍后讲解这个。
+
+### 基本的区块链函数
+在开始工作量证明算法之前，我们先将基本的区块链函数连接起来。我们将会添加一个 isBlockValid 函数，来保证索引正确递增以及当前区块的 PrevHash 和前一区块的 Hash 值是匹配的。
+
+我们也要添加一个 calculateHash 函数，生成我们需要用来创建 Hash 和 PrevHash 的哈希值。它就是一个索引、时间戳、BPM、前一区块哈希和 Nonce 的 SHA-256 哈希值（我们稍后将会解释它是什么）
+
+
+    func isBlockValid(newBlock, oldBlock Block) bool {
+        if oldBlock.Index+1 != newBlock.Index {
+                return false
+        }
+
+        if oldBlock.Hash != newBlock.PrevHash {
+                return false
+        }
+
+        if calculateHash(newBlock) != newBlock.Hash {
+                return false
+        }
+
+        return true
+    }
+
+    func calculateHash(block Block) string {
+        record := strconv.Itoa(block.Index) + block.Timestamp + strconv.Itoa(block.BPM) + block.PrevHash + block.Nonce
+        h := sha256.New()
+        h.Write([]byte(record))
+        hashed := h.Sum(nil)
+        return hex.EncodeToString(hashed)
+    }
+
+
+### 工作量证明
+
+让我们来看挖矿算法，或者说工作量证明。我们希望确保工作量证明算法在允许一个新的区块 Block 添加到区块链 blockchain 之前就已经完成了。我们从一个简单的函数开始，这个函数可以检查在工作量证明算法中生成的哈希值是否满足我们设置的要求。
+
+我们的要求如下所示：
+
+- 工作量证明算法生成的哈希值必须要以某个特定个数的零开始
+- 零的个数由常数 difficulty 决定，它在程序的一开始定义（在示例中，它是 1）
+- 我们可以通过增加难度值让工作量证明算法变得困难
+
+完成下面这个函数，isHashValid：
+
+    func isHashValid(hash string, difficulty int) bool {
+        prefix := strings.Repeat("0", difficulty)
+        return strings.HasPrefix(hash, prefix)
+    }
+
+Go 在它的 strings 包里提供了方便的 Repeat 和 HasPrefix 函数。我们定义变量 prefix 作为我们在 difficulty 定义的零的拷贝。下面我们对哈希值进行验证，看是否以这些零开头，如果是返回 True 否则返回 False。
+
+现在我们创建 generateBlock 函数。
+
+    func generateBlock(oldBlock Block, BPM int) Block {
+        var newBlock Block
+
+        t := time.Now()
+
+        newBlock.Index = oldBlock.Index + 1
+        newBlock.Timestamp = t.String()
+        newBlock.BPM = BPM
+        newBlock.PrevHash = oldBlock.Hash
+        newBlock.Difficulty = difficulty
+
+        for i := 0; ; i++ {
+                hex := fmt.Sprintf("%x", i)
+                newBlock.Nonce = hex
+                if !isHashValid(calculateHash(newBlock), newBlock.Difficulty) {
+                        fmt.Println(calculateHash(newBlock), " do more work!")
+                        time.Sleep(time.Second)
+                        continue
+                } else {
+                        fmt.Println(calculateHash(newBlock), " work done!")
+                        newBlock.Hash = calculateHash(newBlock)
+                        break
+                }
+
+        }
+        return newBlock
+    }
+
+我们创建了一个 newBlock 并将前一个区块的哈希值放在 PrevHash 属性里，确保区块链的连续性。其他属性的值就很明了了：
+
+Index 增量
+Timestamp 是代表了当前时间的字符串
+BPM 是之前你记录下的心率
+Difficulty 就直接从程序一开始的常量中获取。在本篇教程中我们将不会使用这个属性，但是如果我们需要做进一步的验证并且确认难度值对哈希结果固定不变（也就是哈希结果以 N 个零开始那么难度值就应该也等于 N，否则区块链就是受到了破坏），它就很有用了。
+
+for 循环是这个函数中关键的部分。我们来详细看看这里做了什么：
+
+我们将设置 Nonce 等于 i 的十六进制表示。我们需要一个为函数 calculateHash 生成的哈希值添加一个变化的值的方法，这样如果我们没能获取到我们期望的零前缀数目，我们就能用一个新的值重新尝试。这个我们加入到拼接的字符串中的变化的值 **calculateHash** 就被称为“Nonce”
+在循环里，我们用 i 和以 0 开始的 Nonce 计算哈希值，并检查结果是否以常量 difficulty 定义的零数目开头。如果不是，我们用一个增量 Nonce 开始下一轮循环做再次尝试。
+我们添加了一个一秒钟的延迟来模拟解决工作量证明算法的时间
+我们一直循环计算直到我们得到了我们想要的零前缀，这就意味着我们成功的完成了工作量证明。当且仅当这之后才允许我们的 Block 通过 handleWriteBlock 处理函数被添加到 blockchain。
+
+我们已经写完了所有函数，现在我们来完成 main 函数：
+
+    func main() {
+        err := godotenv.Load()
+        if err != nil {
+                log.Fatal(err)
+        }   
+
+        go func() {
+                t := time.Now()
+                genesisBlock := Block{}
+                genesisBlock = Block{0, t.String(), 0, calculateHash(genesisBlock), "", difficulty, ""} 
+                spew.Dump(genesisBlock)
+
+                mutex.Lock()
+                Blockchain = append(Blockchain, genesisBlock)
+                mutex.Unlock()
+        }() 
+        log.Fatal(run())
+
+    }
+
+我们使用 godotenv.Load() 函数加载环境变量，也就是用来在浏览器访问的 :8080 端口。
+
+一个 go routine 创建了创世区块，因为我们需要它作为区块链的起始点
+
+我们用刚才创建的 run() 函数开始网络服务。
+
+### 用 go run main.go 来开始程序
+
+然后用浏览器访问 [http://localhost:8080](http://localhost:8080)：
+
+
+![](https://i.imgur.com/CZbFuKG.png)
+
+创世区块已经为我们创建好。现在打开 Postman 然后发送一个 POST 请求，向同一个路由以 JSON 格式在 body 中发送之前测定的心率值。
+
+![](https://i.imgur.com/efb6d6P.png)
+
+发送请求之后，在终端看看发生了什么。你将会看到你的机器忙着用增加 Nonce 值不停创建新的哈希值，直到它找到了需要的零前缀值。
+
+![](https://i.imgur.com/yYxYi6X.png)
+
+当工作量证明算法完成了，我们就会得到一条很有用的 work done! 消息，我们就可以去检验哈希值来看看它是不是真的以我们设置的 difficulty 个零开头。这意味着理论上，那个我们试图添加 BPM = 60 信息的新区块已经被加入到我们的区块链中了。
+我们来刷新浏览器并查看：
+
+![](https://i.imgur.com/2vJwrjg.png)
+
+
+成功了！我们的第二个区块已经被加入到创世区块之后。这意味着我们成功的在 POST 请求中发送了区块，这个请求触发了挖矿的过程，并且当且仅当工作量证明算法完成后，它才会被添加到区块链中。
+
+如果你准备做另一次技术上的跳跃，试着学习股权证明（Proof of Stake） 算法。虽然大多数的区块链使用工作量证明算法作为共识算法，股权证明算法正获得越来越多的关注。很多人相信以太坊将来会从工作量证明算法切换到股权证明算法。
