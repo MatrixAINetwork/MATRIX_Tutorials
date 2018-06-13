@@ -47,4 +47,176 @@
 现在你就知道了，比特币共识机制比单纯的“解决一个数学问题”要有意思的多！
 
 
+## 开始编程
 
+现在我们已经有了足够多的背景知识，让我们用工作量共识算法来建立自己的比特币程序。我们将会用 Go 语言来写，因为我们在 Coral Health 中使用它。
+
+结构
+
+![](https://i.imgur.com/IX8b3Np.png)
+
+我们将有一个 Go 服务，我们就简单的把所有代码就放在一个 main.go 文件中。这个文件将会提供给我们所需的所有的区块链逻辑（包括工作量证明算法），并包括所有 REST 接口的处理函数。区块链数据是不可改的，我们只需要 GET 和 POST 请求。我们将用浏览器发送 GET 请求来观察数据，并使用 Postman 来发送 POST 请求给新区块（curl 也同样好用）。
+
+
+### 引包
+我们从标准的引入操作开始。确保使用 go get 来获取如下的包
+github.com/davecgh/go-spew/spew 在终端漂亮地打印出你的区块链
+
+github.com/gorilla/mux 一个使用方便的层，用来连接你的 web 服务
+
+github.com/joho/godotenv 在根目录的 .env 文件中读取你的环境变量
+
+让我们在根目录下创建一个 .env 文件，它仅包含一个我们一会儿将会用到的环境变量。在 .env 文件中写一行：ADDR=8080。
+对包作出声明，并在根目录的 main.go 定义引入：
+
+
+    package main
+
+    import (
+        "crypto/sha256"
+        "encoding/hex"
+        "encoding/json"
+        "fmt"
+        "io"
+        "log"
+        "net/http"
+        "os"
+        "strconv"
+        "strings"
+        "sync"
+        "time"
+
+        "github.com/davecgh/go-spew/spew"
+        "github.com/gorilla/mux"
+        "github.com/joho/godotenv"
+    )
+
+区块链中的区块可以通过比较区块的 previous hash 属性值和前一个区块的哈希值来被验证。这就是区块链保护自身完整性的方式以及黑客组织无法修改区块链历史记录的原因。
+
+![](https://i.imgur.com/DMLIbPn.png)
+
+BPM 是你的心率，也就是一分钟心跳次数。我们将会用一分钟内你的心跳次数作为我们放到区块链中的数据。把两个手指放到手腕数一数一分钟脉搏内跳动的次数，记住这个数字。
+
+### 一些基础探测
+添加一些在引入后将会需要的数据模型和其他变量到 main.go 文件
+
+    const difficulty = 1
+
+    type Block struct {
+        Index      int
+        Timestamp  string
+        BPM        int
+        Hash       string
+        PrevHash   string
+        Difficulty int
+        Nonce      string
+    }
+
+    var Blockchain []Block
+
+    type Message struct {
+        BPM int
+    }
+
+    var mutex = &sync.Mutex{}
+
+
+difficulty 是一个常数，定义了我们希望哈希结果的零前缀数目。需要得到越多的零，找到正确的哈希输入就越难。我们就从一个零开始。
+
+Block 是每一个区块的数据模型。别担心不懂 Nonce，我们稍后会解释。
+
+Blockchain 是一系列的 Block，表示完整的链。
+
+Message 是我们在 REST 接口用 POST 请求传送进来的、用以生成一个新的 Block 的信息。
+
+我们声明一个稍后将会用到的 mutex 来防止数据竞争，保证在同一个时间点不会产生多个区块。
+
+### Web 服务
+
+让我们快速连接好网络服务。创建一个 run 函数，稍后在 main 中调用他来支撑服务。还需要在 makeMuxRouter() 中声明路由处理函数。记住，我们只需要用 GET 方法来追溯区块链内容， POST 方法来创建区块。区块链不可修改，所以我们不需要修改和删除操作。
+
+
+     func run() error {
+        mux := makeMuxRouter()
+        httpAddr := os.Getenv("ADDR")
+        log.Println("Listening on ", os.Getenv("ADDR"))
+        s := &http.Server{
+                Addr:           ":" + httpAddr,
+                Handler:        mux,
+                ReadTimeout:    10 * time.Second,
+                WriteTimeout:   10 * time.Second,
+                MaxHeaderBytes: 1 << 20,
+        }
+
+        if err := s.ListenAndServe(); err != nil {
+                return err
+        }
+
+        return nil
+    }
+
+     func makeMuxRouter() http.Handler {
+        muxRouter := mux.NewRouter()
+        muxRouter.HandleFunc("/", handleGetBlockchain).Methods("GET")
+        muxRouter.HandleFunc("/", handleWriteBlock).Methods("POST")
+        return muxRouter
+    }
+
+
+httpAddr := os.Getenv("ADDR") 将会从刚才我们创建的 .env 文件中拉取端口 :8080。我们就可以通过访问浏览器的 [http://localhost:8080](http://localhost:8080) 来访问应用。
+
+让我们写 GET 处理函数来在浏览器上打印出区块链。我们也将会添加一个简易 respondwithJSON 函数，它会在调用接口发生错误的时候，以 JSON 格式反馈给我们错误消息。
+
+
+    func handleGetBlockchain(w http.ResponseWriter, r *http.Request) {
+        bytes, err := json.MarshalIndent(Blockchain, "", "  ")
+        if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+        io.WriteString(w, string(bytes))
+    }
+
+    func respondWithJSON(w http.ResponseWriter, r *http.Request, code int, payload interface{}) {
+        w.Header().Set("Content-Type", "application/json")
+        response, err := json.MarshalIndent(payload, "", "  ")
+        if err != nil {
+                w.WriteHeader(http.StatusInternalServerError)
+                w.Write([]byte("HTTP 500: Internal Server Error"))
+                return
+        }
+        w.WriteHeader(code)
+        w.Write(response)
+    }
+
+
+现在来写 POST 处理函数。这个函数就是我们添加新区块的方法。我们用 Postman 发送一个 POST 请求，发送一个 JSON 的 body，比如 {“BPM”:60}，到 [http://localhost:8080](http://localhost:8080)，并且携带你之前测得的你的心率。
+
+
+
+    func handleWriteBlock(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Content-Type", "application/json")
+        var m Message
+
+        decoder := json.NewDecoder(r.Body)
+        if err := decoder.Decode(&m); err != nil {
+                respondWithJSON(w, r, http.StatusBadRequest, r.Body)
+                return
+        }   
+        defer r.Body.Close()
+
+        //ensure atomicity when creating new block
+        mutex.Lock()
+        newBlock := generateBlock(Blockchain[len(Blockchain)-1], m.BPM)
+        mutex.Unlock()
+
+        if isBlockValid(newBlock, Blockchain[len(Blockchain)-1]) {
+                Blockchain = append(Blockchain, newBlock)
+                spew.Dump(Blockchain)
+        }   
+
+        respondWithJSON(w, r, http.StatusCreated, newBlock)
+
+    }
+
+注意到 mutex 的 lock（加锁） 和 unlock（解锁）。在写入一个新的区块之前，需要给区块链加锁，否则多个写入将会导致数据竞争。精明的读者还会注意到 generateBlock 函数。这是处理工作量证明的关键函数。我们稍后讲解这个。
