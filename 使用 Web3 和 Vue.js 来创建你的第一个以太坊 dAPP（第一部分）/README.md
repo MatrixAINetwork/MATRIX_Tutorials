@@ -40,3 +40,103 @@
 
 
 我们没有使用 web3 1.0.0 测试版，因为它在写入时与 MetaMask 不兼容。
+
+
+### 编写智能合约
+
+在我们毫无头绪地编码之前，我们必须首先分析我们需要的组件：
+
+我们需要知道合约的所有者并拥有访问权限（为简单起见，我们将不再修改所有者）
+
+合约的所有者可以销毁合约并提取余额
+
+用户可以在 1 - 10 之间下注
+
+在合约创建时，所有者能够设置最低下注金额和庄家上风（为简单起见，创建后不可更改）
+
+第一步和第二步非常简单，我们已经添加了注释，这样就没问题了。 打开 [Remix]（http://remix.ethereum.org）开始工作（文章结尾处的要点链接）：
+
+    pragma solidity ^0.4.10;
+    contract Ownable {
+    address owner;
+    function Ownable() public {
+    //Set owner to who creates the contract
+    owner = msg.sender;
+    }
+    //Access modifier 
+    modifier Owned {
+     require(msg.sender == owner);
+     _;
+     }
+    }
+    contract Mortal is Ownable {
+    //Our access modifier is present, only the contract creator can      use this function
+     function kill() public Owned { 
+     selfdestruct(owner);
+     }
+    }
+
+
+首先我们创建合约 Ownable，构造函数 _Ownable（）_将在创建时被调用，并将状态变量 'owner' 设置为创建者的地址。 我们还定义了一个访问控制，当我们附加的函数的调用者不是合约所有者时，它将抛出异常。
+
+我们将此功能传递到 Mortal 合约中（Mortal 继承自 Ownabe ）。 它有一个函数，允许合约所有者（访问控制）销毁合约并将剩余资金发回给他。
+
+你已经走到这一步了？你做的很好！我们的合约差不多准备好了。
+
+现在我们在步骤3和步骤4将创建 Casino 合约:
+
+
+首先我们需要 minBet 和 houseEdge，可以在创建合约时设置。通过将参数传递给构造函数 _Casino() 实现。我们将会使构造函数为 payable，这样我们就可以在部署时使用 Ether 预先加载合约。我们也会实现回退过程：
+
+
+    uint minBet;
+    uint houseEdge; //in %
+    //true+amount or false+0
+    event Won(bool _status, uint _amount);
+    function Casino(uint _minBet, uint _houseEdge) payable public {
+    require(_minBet > 0);
+    require(_houseEdge <= 100);
+     minBet = _minBet;
+     houseEdge = _houseEdge;
+     }
+ 
+    function() public { //fallback
+     revert();
+     }
+    }
+
+这还不够，所以接下来我们将添加函数用于下注一个数字。此函数将生成一个随机数（此方式不安全！），然后计算并发送赢得的奖励。在你的回退函数下面加上如下部分:
+
+    function bet(uint _number) payable public {
+    require(_number > 0 && _number <= 10);
+    require(msg.value >= minBet);
+    uint winningNumber = block.number % 10 + 1;
+    if (_number == winningNumber) {
+    uint amountWon = msg.value * (100 — houseEdge)/10;
+    if(!msg.sender.send(amountWon)) revert();
+    Won(true, amountWon);
+    } else {
+    Won(false, 0);
+    }
+    }
+
+为了在 1 - 10 之间生成一个随机数，我们取当前区块编号，并取当前区块号的模量（除数余数）。这总是会产生 0-9 之间的一个数，所以我们加1，从而得到一个 1 - 10 之间的“随机”数字。
+
+例如:如果我们在新的匿名窗口中使用 javascript VM 在 remix 上部署合约，并在部署后调用 bet 函数，我们将总是得到 2 作为中奖号码。这是因为第一个块是 #1。1 的模是 1，加 1 等于 2。
+
+** 请注意，这并不是真正随机的，因为很容易预测下一个区块号。更多地了解 solidity 的随机性，请查看[https:/ /www.youtube.com/watch?v=3wY5PRliphE].(https://www.youtube.com/watch?v=3wY5PRliphE)
+
+为了计算赢取的奖金，我们只需计算一个乘数：
+
+    bet * (100 — houseEdge)/10 
+
+如果庄家上风为 0，我们的乘数是 10；如果庄家上风是 10%，则乘数是 9。
+
+最后，我们将为所有者添加一个函数，以检查合约的余额，理想情况下，我们还希望为所有者添加一个提取函数，但我们现在就不做了。在你的 bet 函数下面添加以下几行:
+
+    function checkContractBalance() Owned public view returns(uint) {
+    return this.balance;
+    }
+
+
+合约现在已经准备好进行测试了!
