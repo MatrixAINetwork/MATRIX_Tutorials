@@ -98,3 +98,95 @@ Vuex 的状态管理模式。
     <style scoped>
 
     </style>
+
+现在如果你打开 router/index.js 你会看到 root 下只有一个路由，它现在仍指向我们已删除的 HelloWorld.vue 组件。我们需要将其指向我们主组件 casino-app.vue。
+
+    import Vue from 'vue'
+    import Router from 'vue-router'
+    import CasinoDapp from '@/components/casino-dapp'
+
+    Vue.use(Router)
+
+    export default new Router({
+    routes: [
+    {
+    path: '/',
+    name: 'casino-dapp',
+    component: CasinoDapp
+    }
+    ]
+    })
+
+
+关于 Vue Router：你可以增加额外的路径并为其绑定组件，当你访问定义的路径时，在 App.vue 文件中的 router-view 标签中，对应的组件会被渲染，并进行显示。
+
+- 在 src 中创建一个名为 util 的新文件夹，在这个文件夹中创建另一个名为 constants 的新文件夹，并创建一个名为 networks.js 的文件，粘贴下面的代码。我们用 ID 来代替以太坊（Ethereum）网络名称显示，这样做会保持我们代码的整洁。
+
+    export const NETWORKS = {
+    '1': 'Main Net',
+    '2': 'Deprecated Morden test network',
+    '3': 'Ropsten test network',
+    '4': 'Rinkeby test network',
+    '42': 'Kovan test network',
+    '4447': 'Truffle Develop Network',
+    '5777': 'Ganache Blockchain'
+     }
+
+
+- 最后的但同样重要的（实际上现在用不到）是，在 src 中创建一个名为 store 的新文件夹。我们将在下一节继续讨论。
+
+如果你在终端中执行 npm start，并在浏览器中访问 localhost:8000，你应该可以看到「Hello」出现在屏幕上。如果是这样的话，就表示你准备好进入下一步了。
+
+### 设置我们的 Vuex 容器
+
+在这一节中，我们要设置我们的容器（store）。首先从在 store 目录（上一节的最后一部分）下创建两个文件开始：index.js 和 state.js；我们先从 state.js 开始，它是我们所检索的数据一个空白表示（Blank representation）。
+
+    let state = {
+    web3: {
+    isInjected: false,
+    web3Instance: null,
+    networkId: null,
+    coinbase: null,
+    balance: null,
+    error: null
+    },
+    contractInstance: null
+    }
+    export default state
+
+
+好了，现在我们要对 index.js 进行设置。我们会导入 Vuex 库并且告诉 VueJS 使用它。我们也会把 state 导入到我们的 store 文件中。
+
+    import Vue from 'vue'
+    import Vuex from 'vuex'
+    import state from './state'
+
+    Vue.use(Vuex)
+
+    export const store = new Vuex.Store({
+    strict: true,
+    state,
+    mutations: {},
+    actions: {}
+    })
+
+
+最后一步是编辑 main.js ，以包含我们的 store 文件：
+
+    import Vue from 'vue'
+    import App from './App'
+    import router from './router'
+    import { store } from './store/'
+
+    Vue.config.productionTip = false
+
+    /* eslint-disable no-new */
+    new Vue({
+    el: '#app',
+    router,
+    store,
+    components: { App },
+    template: '<App/>'
+    })
+
+
