@@ -189,4 +189,158 @@ Vuex 的状态管理模式。
     template: '<App/>'
     })
 
+现在已经准备好通过 web3 API 获取我们 Metamask 的数据，并使其在我们的应用发挥作用了
 
+### 入门 Web3 和 Metamask
+就像前面提到的，为了让 Vue 应用能获取到数据，我们需要触发（dispatch）一个 action 执行异步的 API 调用。我们会使用 promise 将几个方法链式调用，并将这些代码提取（封装）到文件 util/getWeb3.js 中。粘贴以下的代码，其中包含了一些有助你遵循的注释。我们会在代码块下面对它进行解析：
+
+    import Web3 from 'web3'
+
+    /*
+    * 1. Check for injected web3 (mist/metamask)
+    * 2. If metamask/mist create a new web3 instance and pass on result
+    * 3. Get networkId - Now we can check the user is connected to the right network to use our dApp
+    * 4. Get user account from metamask
+    * 5. Get user balance
+    */
+
+    let getWeb3 = new Promise(function (resolve, reject) {
+    // Check for injected web3 (mist/metamask)
+    var web3js = window.web3
+    if (typeof web3js !== 'undefined') {
+    var web3 = new Web3(web3js.currentProvider)
+    resolve({
+      injectedWeb3: web3.isConnected(),
+      web3 () {
+        return web3
+      }
+    })
+    } else {
+    // web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:7545')) GANACHE FALLBACK
+    reject(new Error('Unable to connect to Metamask'))
+     }
+    })
+    .then(result => {
+    return new Promise(function (resolve, reject) {
+      // Retrieve network ID
+      result.web3().version.getNetwork((err, networkId) => {
+        if (err) {
+          // If we can't find a networkId keep result the same and reject the promise
+          reject(new Error('Unable to retrieve network ID'))
+        } else {
+          // Assign the networkId property to our result and resolve promise
+          result = Object.assign({}, result, {networkId})
+          resolve(result)
+        }
+      })
+    })
+     })
+    .then(result => {
+    return new Promise(function (resolve, reject) {
+      // Retrieve coinbase
+      result.web3().eth.getCoinbase((err, coinbase) => {
+        if (err) {
+          reject(new Error('Unable to retrieve coinbase'))
+        } else {
+          result = Object.assign({}, result, { coinbase })
+          resolve(result)
+        }
+      })
+    })
+    })
+    .then(result => {
+    return new Promise(function (resolve, reject) {
+      // Retrieve balance for coinbase
+      result.web3().eth.getBalance(result.coinbase, (err, balance) => {
+        if (err) {
+          reject(new Error('Unable to retrieve balance for address: ' + result.coinbase))
+        } else {
+          result = Object.assign({}, result, { balance })
+          resolve(result)
+        }
+      })
+    })
+    })
+
+    export default getWeb3
+
+
+第一步要注意的是我们使用 promise 链接了我们的回调方法，如果你不太熟悉 promise 的话，请参考此链接。下面我们要检查用户是否有 Metamask（或 Mist）运行。Metamask 注入 web3 本身的实例，所以我们要检查 window.web3（注入的实例）是否有定义。如果是否的话，我们会用 Metamask 作为当前提供者（currentProvider）创建一个 web3 的实例，这样一来，实例就不依赖于注入对象的版本。我们把新创建的实例传递给接下来的 promise，在那里我们做几个 API 调用：
+
+- web3.version.getNetwork() 将返回我们连接的网络 ID。
+- web3.eth.coinbase() 返回我们节点挖矿的地址，当使用 Metamask 时，它应该会是已选择的账户。
+- web3.eth.getBalance(<address>) 返回作为参数传入的该地址的余额。
+
+还记得我们说过 Vuex 容器中的 action 需要异步地进行 API 调用吗？我们在这里将其联系起来，然后再从组件中将其触发。在 store/index.js 中，我们会导入 getWeb3.js 文件，调用它，然后将其（结果）commit 给一个 mutation，并让其（状态）保留在容器中。
+在你的 import 声明中增加：
+
+
+    import getWeb3 from '../util/getWeb3'
+
+然后在（store 内部）的 action 对象中调用 getWeb3 并 commit 其结果。我们会添加一些 console.log 在我们的逻辑中，这样做是希望让 dispatch-action-commit-mutation-statechange 流程更加清楚，有助于我们理解整个执行的步骤。
+
+    registerWeb3 ({commit}) {
+      console.log('registerWeb3 Action being executed')
+      getWeb3.then(result => {
+        console.log('committing result to registerWeb3Instance mutation')
+        commit('registerWeb3Instance', result)
+      }).catch(e => {
+        console.log('error in action registerWeb3', e)
+      })
+    }
+
+现在我们要创建我们的 mutation，它会将数据存储为容器中的状态。通过访问第二个参数，我们可以访问我们 commit 到 mutation 中的数据。在 mutations 对象中增加下面的方法：
+
+    registerWeb3Instance (state, payload) {
+    console.log('registerWeb3instance Mutation being executed', payload)
+    let result = payload
+    let web3Copy = state.web3
+    web3Copy.coinbase = result.coinbase
+    web3Copy.networkId = result.networkId
+    web3Copy.balance = parseInt(result.balance, 10)
+    web3Copy.isInjected = result.injectedWeb3
+    web3Copy.web3Instance = result.web3
+    state.web3 = web3Copy
+    }
+
+现在剩下要做的是在我们的组件中触发（dispatch）一个 action，取得数据并在我们的应用中进行呈现。为了触发（dispatch）action，我们将会用到 Vue 的生命周期钩子。在我们的例子中，我们要在它创建之前触发（dispatch）action。在 components/casino-dapp.vue 中的 name 属性下增加以下方法：
+
+    export default {
+    name: 'casino-dapp',
+    beforeCreate () {
+    console.log('registerWeb3 Action dispatched from casino-dapp.vue')
+    this.$store.dispatch('registerWeb3')
+    },
+    components: {
+    'hello-metamask': HelloMetamask
+    }
+    }
+
+现在我们要渲染 hello-metamask 组件的数据，我们账户的所有数据都将在此组件中进行呈现。从容器（store）中获得数据，我们需要在计算属性中增加一个 getter 方法。然后，我们就可以在模板中使用大括号来引用数据了。
+
+    <template>
+    <div class='metamask-info'>
+    <p>Metamask: {{ web3.isInjected }}</p>
+    <p>Network: {{ web3.networkId }}</p>
+    <p>Account: {{ web3.coinbase }}</p>
+    <p>Balance: {{ web3.balance }}</p>
+    </div>
+    </template>
+
+    <script>
+    export default {
+    name: 'hello-metamask',
+    computed: {
+    web3 () {
+     return this.$store.state.web3
+     }
+     }
+    }
+    </script>
+
+    <style scoped></style>
+
+现在一切都应该完成了。在你的终端（terminal）中通过 npm start 启动这个项目，并访问 localhost:8080。现在，我们可以看到 Metamask 的数据。当我们打开控制台，应该可以看到 console.log 输出的 —— 在 Vuex 那段中的描述状态管理模式信息。
+
+
+以防出现错误，可以[ Github 仓库 ](https://link.juejin.im/?target=https%3A%2F%2Fgithub.com%2Fkyriediculous%2Fdapp-tutorial%2Ftree%2Fhello-metamask)的 hello-metamask 分支上查看有此部分完整的代码
