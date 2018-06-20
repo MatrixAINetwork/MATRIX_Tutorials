@@ -217,3 +217,103 @@ bet() 函数的第一个参数是在协议中定义的参数 u Number.Event.Targ
 
 
 
+### Ropsten 网络和 Metamask（面向第一次用户）
+
+如果您不熟悉 metamask 或以太坊网络，请不要担心。
+
+- 打开浏览器和 metamask 插件。接受使用条款并创建密码。
+- 将种子短语存放在安全的地方(这是为了在丢失钱包时将其恢复原状)。
+- 点击「以太坊主网」并切换到 Ropsten 测试网。
+- 单击「购买」，然后单击「Ropsten Testnet Fucet」。在这里我们可以得到一些免费的测试-以太坊。
+- 在 faucet 网站上，点击「从 faucet 请求 1 ether」几次。
+
+当所有的事情都熟悉了并做完之后，您的 Metamask 应该如下所示：
+
+![](https://i.imgur.com/7GiL0d0.png)
+
+### 部署和连接
+
+再打开 remix，我们的协议应该还在。如果不是，请转到此要点并复制粘贴。在 ReMix 的 rop 右边，确保我们的环境被设置为「InsistedWeb 3(Ropsten)」，并且选择了我们的地址。
+
+部署与第1部分中的部署相同。我们在 Value 字段中输入几个参数来预装协议，输入构造函数参数，然后单击 Create。这一次，metamask 将提示接受/拒绝事务（约定部署）。单击「接受」并等待事务完成。
+
+当 TX 完成后点击它，这将带你到那个 TX 的萎缩块链浏览器。我们可以在「to」字段下找到协议的地址。你的协议虽然不同，但看起来很相似。
+
+![](https://i.imgur.com/Yw4QGA3.png)
+
+我们的协议地址在「to」字段中。
+
+这就给了我们地址，现在是 ABI。回到 remix 并切换到「编译」选项卡（右上角）。在协议名称旁边，我们将看到一个名为「Details」的按钮，单击它。第四个领域是我们的 ABI。
+
+不错，现在我们只需要创建前一节还不存在的一个文件。因此，在 util/constents 文件夹中创建一个名为 casinoContract.js 的新文件。创建两个变量，粘贴必要的内容并导出变量，这样我们从上面导入的内容就可以访问它们。
+
+    const address = ‘0x…………..’
+    const ABI = […]
+    export {address, ABI}
+
+现在，我们可以通过在终端中运行 npm start ，并在浏览器中运行 localhost：8080 来测试我们的应用程序。输入金额并单击一个数字。Metamask 将提示您接受事务，旋转器将启动。在 30 秒到 1 分钟之后，我们得到第一次确认，因此也得到了事件的确认。我们的余额发生了变化，所以 pollweb 3 触发它的 action 来更新余额：
+
+![](https://i.imgur.com/343AFSa.png)
+
+最终结果(左)和生命周期(右)。
+
+如果你能在这个系列中走到这一步，我会为您鼓掌。我不是一个专业的作家，所以有时阅读起来并不容易。我们的应用程序在主干网上已经设置好了，我们只需要让它更漂亮一些，更友好一些。我们将在下一节中这样做，尽管这是可选的。
+
+
+### 关注需要它的部分
+
+我们很快就会讲完的。它将只是一些 html、css 和 vue 条件语句，带有 v-if/v-Else。
+
+**在 App.vue **中，将容器类添加到我们的 div 元素中，在 CSS 中定义该类：
+
+    .container {
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+    }
+    @media (min-width: 768px) {
+     .container {
+     width: 750px;
+     }
+    }
+
+**在 main.js 中，**导入我们已经安装的 font-awesome 的库（我知道，这不是我们需要的两个图标的最佳方式）：
+
+    import ‘font-awesome/css/font-awesome.css’
+
+
+在 Hello-metanask.vue 中，我们将做一些更改。我们将在我们的 Computed 属性中使用 mapState 助手，而不是当前函数。我们还将使用 v-if 检查 isInjected ，并在此基础上显示不同的 HTML。最后的组件如下所示：
+
+    <template>
+    <div class='metamask-info'>
+    <p v-if="isInjected" id="has-metamask"><i aria-hidden="true" class="fa fa-check"></i> Metamask installed</p>
+    <p v-else id="no-metamask"><i aria-hidden="true" class="fa fa-times"></i> Metamask not found</p>
+    <p>Network: {{ network }}</p>
+    <p>Account: {{ coinbase }}</p>
+    <p>Balance: {{ balance }} Wei </p>
+     </div>
+    </template>
+
+    <script>
+    import {NETWORKS} from '../util/constants/networks'
+    import {mapState} from 'vuex'
+    export default {
+    name: 'hello-metamask',
+    computed: mapState({
+    isInjected: state => state.web3.isInjected,
+    network: state => NETWORKS[state.web3.networkId],
+    coinbase: state => state.web3.coinbase,
+    balance: state => state.web3.balance
+    })
+    }
+    </script>
+
+    <style scoped>
+    #has-metamask {
+    color: green;
+    }
+    #no-metamask {
+     color:red;
+    }</style>
+
