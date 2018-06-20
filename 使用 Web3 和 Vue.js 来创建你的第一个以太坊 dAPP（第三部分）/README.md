@@ -85,3 +85,135 @@
     }
     }
 
+现在 action 和变体在 store 中。首先导入 getContract.js 文件，我相信您现在已经知道如何做到这一点了。然后在我们创建的过程中，调用它：
+
+    getContractInstance ({commit}) {
+    getContract.then(result => {
+    commit(‘registerContractInstance’, result)
+    }).catch(e => console.log(e))
+    }
+
+把结果传给我们的变体：
+
+    registerContractInstance (state, payload) {
+    console.log(‘Casino contract instance: ‘, payload)
+    state.contractInstance = () => payload
+    }
+
+
+这将把我们的协议实例存储在 store 中，以便我们在组件中使用。
+
+
+与我们的协议交互
+
+首先，我们将添加一个数据属性（在导出中）到我们的 casino 组件中，这样我们就可以拥有具有响应式属性的变量。这些值将是 winEvent、amount 和 Pending。
+
+    data () {
+    return {
+    amount: null,
+    pending: false,
+    winEvent: null
+    }
+    }
+
+我们将创建一个 onclick 函数来监听用户点击数字事件。这将触发协议上的 bet() 函数，显示微调器，当它接收到事件时，隐藏微调器并显示事件参数。在 data 属性下，添加一个名为 methods 的属性，该属性接收一个对象，我们将在其中放置我们的函数。
+
+    methods: {
+    clickNumber (event) {
+      console.log(event.target.innerHTML, this.amount)
+      this.winEvent = null
+      this.pending = true
+      this.$store.state.contractInstance().bet(event.target.innerHTML, {
+        gas: 300000,
+        value: this.$store.state.web3.web3Instance().toWei(this.amount, 'ether'),
+        from: this.$store.state.web3.coinbase
+      }, (err, result) => {
+        if (err) {
+          console.log(err)
+          this.pending = false
+        } else {
+          let Won = this.$store.state.contractInstance().Won()
+          Won.watch((err, result) => {
+            if (err) {
+              console.log('could not get event Won()')
+            } else {
+              this.winEvent = result.args
+              this.pending = false
+            }
+          })
+        }
+      })
+    }
+    }
+
+
+bet() 函数的第一个参数是在协议中定义的参数 u Number.Event.Target.innerHTML ，接下来，引用我们将在列表标记中创建的数字。然后是一个定义事务参数的对象，这是我们输入用户下注金额的地方。第三个参数是回调函数。完成后，我们将监听这一事件
+
+现在，我们将为组件创建 html 和 CSS。只是复制粘贴它，我认为它已经很浅显了。在此之后，我们将部署协议，并获得 ABI 和 Address。
+
+    <template>
+    <div class=”casino”>
+     <h1>Welcome to the Casino</h1>
+    <h4>Please pick a number between 1 and 10</h4>
+    Amount to bet: <input v-model=”amount” placeholder=”0 Ether”>
+    <ul>
+     <li v-on:click=”clickNumber”>1</li>
+     <li v-on:click=”clickNumber”>2</li>
+     <li v-on:click=”clickNumber”>3</li>
+     <li v-on:click=”clickNumber”>4</li>
+     <li v-on:click=”clickNumber”>5</li>
+     <li v-on:click=”clickNumber”>6</li>
+     <li v-on:click=”clickNumber”>7</li>
+     <li v-on:click=”clickNumber”>8</li>
+     <li v-on:click=”clickNumber”>9</li>
+     <li v-on:click=”clickNumber”>10</li>
+    </ul>
+    <img v-if=”pending” id=”loader” src=”https://loading.io/spinners/double-ring/lg.double-ring-spinner.gif”>
+    <div class=”event” v-if=”winEvent”>
+    Won: {{ winEvent._status }}
+    Amount: {{ winEvent._amount }} Wei
+    </div>
+    </div>
+    </template>
+
+    <style scoped>
+    .casino {
+    margin-top: 50px;
+    text-align:center;
+    }
+    #loader {
+    width:150px;
+    }
+    ul {
+    margin: 25px;
+    list-style-type: none;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-column-gap:25px;
+    grid-row-gap:25px;
+    }
+    li{
+     padding: 20px;
+     margin-right: 5px;
+     border-radius: 50%;
+     cursor: pointer;
+     background-color:#fff;
+     border: -2px solid #bf0d9b;
+     color: #bf0d9b;
+     box-shadow:3px 5px #bf0d9b;
+    }
+    li:hover{
+    background-color:#bf0d9b;
+    color:white;
+    box-shadow:0px 0px #bf0d9b;
+    }
+    li:active{
+     opacity: 0.7;
+    }
+     *{
+     color: #444444;
+    }
+    </style>
+
+
+
