@@ -317,3 +317,20 @@ bet() 函数的第一个参数是在协议中定义的参数 u Number.Event.Targ
      color:red;
     }</style>
 
+我们将执行相同的 v-if/v-else 方法来设计我们的事件，该事件将在赌场内部返回 -Component.vue：
+
+    <div class=”event” v-if=”winEvent”>
+     <p v-if=”winEvent._status” id=”has-won”><i aria-hidden=”true” class=”fa fa-check”></i> Congragulations, you have won {{winEvent._amount}} wei</p>
+    <p v-else id=”has-lost”><i aria-hidden=”true” class=”fa fa-check”></i> Sorry you lost, please try again.</p>
+    </div>
+
+    #has-won {
+    color: green;
+    }
+    #has-lost {
+    color:red;
+    }
+
+最后，在我们的 clickNumber() 函数中，在 this.winEvent=Result.args ：下面添加一行：
+
+    this.winEvent._amount = parseInt(result.args._amount, 10)
