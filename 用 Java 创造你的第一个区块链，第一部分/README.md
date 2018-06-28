@@ -116,6 +116,96 @@
 		this.hash = calculateHash(); //Making sure we do this after we set the other values.
 	}
 
-测试
+开始测试...
 
-我们在主类 NoobChain 中新建一些区块对象并将其 hash 值打印到屏幕上，来确保一切工作正常有序
+我们在主类 NoobChain 中新建一些区块对象并将其 hash 值打印到屏幕上，来确保一切工作正常有序。
+
+第一个区块被命名为起始区块，由于它前面没有区块，所以我们用 “0” 作为其前一个区块的 hash 值。
+
+
+    public class NoobChain {
+
+	public static void main(String[] args) {
+		
+		Block genesisBlock = new Block("Hi im the first block", "0");
+		System.out.println("Hash for block 1 : " + genesisBlock.hash);
+		
+		Block secondBlock = new Block("Yo im the second block",genesisBlock.hash);
+		System.out.println("Hash for block 2 : " + secondBlock.hash);
+		
+		Block thirdBlock = new Block("Hey im the third block",secondBlock.hash);
+		System.out.println("Hash for block 3 : " + thirdBlock.hash);
+		
+	}
+    }
+
+这段程序的输出应该类似于：
+
+![](https://i.imgur.com/5873sg8.png)
+
+由于时间戳不一样，你的 hash 值和我的应该会不同。
+
+现在，每一个区块应该拥有自己的基于区块数据和前一个区块签名计算出来的数字签名
+
+目前，这还并不是区块链，所以让我们将区块存储在一个 ArrayList 中并导入 gson 库来将其输出为 Json 字符串
+
+
+    import java.util.ArrayList;
+    import com.google.gson.GsonBuilder;
+
+    public class NoobChain {
+	
+	public static ArrayList<Block> blockchain = new ArrayList<Block>(); 
+
+	public static void main(String[] args) {	
+		//将我们的区块加入到区块链 ArrayList 中：
+		blockchain.add(new Block("Hi im the first block", "0"));		
+		blockchain.add(new Block("Yo im the second block",blockchain.get(blockchain.size()-1).hash)); 
+		blockchain.add(new Block("Hey im the third block",blockchain.get(blockchain.size()-1).hash));
+		
+		String blockchainJson = new GsonBuilder().setPrettyPrinting().create().toJson(blockchain);		
+		System.out.println(blockchainJson);
+	}
+
+    }
+
+
+#### 现在我们需要一种方法来检查区块链的完整合法性
+
+让我们在 NoobChain 类 中新建一个返回值为 Boolean 的 isChainValid() 方法，它会循环链中所有的区块并比较其 hash 值。这个方法需要能够检查当前区块的 hash 值和计算出来的 hash 值是否相等以及前一个区块的 hash 值是否等于当前区块存储的 previousHash 值。
+
+    public static Boolean isChainValid() {
+	Block currentBlock; 
+	Block previousBlock;
+	
+	//循环区块链并检查 hash 值：
+	for(int i=1; i < blockchain.size(); i++) {
+		currentBlock = blockchain.get(i);
+		previousBlock = blockchain.get(i-1);
+		//比较当前区块存储的 hash 值和计算出来的 hash 值：
+		if(!currentBlock.hash.equals(currentBlock.calculateHash()) ){
+			System.out.println("Current Hashes not equal");			
+			return false;
+		}
+		//比较前一个区块存储的 hash 值和当前区块存储的 previousHash 值：
+		if(!previousBlock.hash.equals(currentBlock.previousHash) ) {
+			System.out.println("Previous Hashes not equal");
+			return false;
+		}
+	}
+	return true;
+    }
+
+对链中的区块做任何改变都会导致这个方法返回 false。
+
+在比特币网络中，区块链被每个节点所共享，最长的合法链会被接受。那么靠什么去阻止某人篡改旧区块中的数据，然后创建一个全新的更长的区块链并将其分享到网络中？答案是区块链的合法性验证工作量。 hashcash 的验证工作意味着计算机需要大量的时间和计算能力来创建新的区块。
+
+因此，攻击者需要比其他同行拥有更多的计算能力。
+
+hashcash, 那需要很大的工作量
+
+#### 开始挖矿
+我们要求 miners 去做验证性工作，通过在区块中尝试不同的参数值直到其 hash 值以若干个 0 开头。
+
+让我们新增一个 int 类型的 nonce 变量，并将其使用到 calculateHash() 方法和十分重要的 mineBlock() 方法中：
+
