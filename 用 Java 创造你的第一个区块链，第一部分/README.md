@@ -209,3 +209,141 @@ hashcash, 那需要很大的工作量
 
 让我们新增一个 int 类型的 nonce 变量，并将其使用到 calculateHash() 方法和十分重要的 mineBlock() 方法中：
 
+
+
+    import java.util.Date;
+
+    public class Block {
+	
+	public String hash;
+	public String previousHash; 
+	private String data; //我们的数据是一条简单的消息
+	private long timeStamp; //从 1/1/1970 起至现在的总毫秒数.
+	private int nonce;
+	
+	//Block 类构造方法.  
+	public Block(String data,String previousHash ) {
+		this.data = data;
+		this.previousHash = previousHash;
+		this.timeStamp = new Date().getTime();
+		
+		this.hash = calculateHash(); //Making sure we do this after we set the other values.
+	}
+	
+	//根据区块内容计算其新 hash 值
+	public String calculateHash() {
+		String calculatedhash = StringUtil.applySha256( 
+				previousHash +
+				Long.toString(timeStamp) +
+				Integer.toString(nonce) + 
+				data 
+				);
+		return calculatedhash;
+	}
+	
+	public void mineBlock(int difficulty) {
+		String target = new String(new char[difficulty]).replace('\0', '0'); //创建一个用 difficulty * "0" 组成的字符串
+		while(!hash.substring( 0, difficulty).equals(target)) {
+			nonce ++;
+			hash = calculateHash();
+		}
+		System.out.println("Block Mined!!! : " + hash);
+	}
+    }
+
+实际上，每个挖矿者会从一个随机点开始迭代计算。一些挖矿者甚至会尝试使用随机数作为 nonce。值得注意的是，更复杂的解决方案的计算值可能会超过 integer 最大值，这时挖矿者可以尝试更改时间戳。
+
+mineBlock() 方法接受一个 int 类型的 difficulty 参数，这是程序需要计算处理的 0 的数量。像 1 或 2 这样低难度的 difficulty 值，也许一台计算机就可以解决了。所以我建议将 difficulty 的值设置为 4-6 来做测试。现在莱特币挖矿的 difficulty 值约为 442,592。
+
+让我们在 NoobChain 类中新增一个静态变量 difficulty：
+
+    public static int difficulty = 5;
+
+我们应该更新 NoobChain 类 去触发每个新区块的 mineBlock() 方法。 返回布尔值的 isChainValid() 还应检查每个区块（通过挖矿）计算出来的 hash 是否合法。
+
+
+    import java.util.ArrayList;
+    import com.google.gson.GsonBuilder;
+
+    public class NoobChain {
+	
+	public static ArrayList<Block> blockchain = new ArrayList<Block>();
+	public static int difficulty = 5;
+
+	public static void main(String[] args) {	
+		//将我们的区块添加至区块链 ArrayList 中：
+		
+		blockchain.add(new Block("Hi im the first block", "0"));
+		System.out.println("Trying to Mine block 1... ");
+		blockchain.get(0).mineBlock(difficulty);
+		
+		blockchain.add(new Block("Yo im the second block",blockchain.get(blockchain.size()-1).hash));
+		System.out.println("Trying to Mine block 2... ");
+		blockchain.get(1).mineBlock(difficulty);
+		
+		blockchain.add(new Block("Hey im the third block",blockchain.get(blockchain.size()-1).hash));
+		System.out.println("Trying to Mine block 3... ");
+		blockchain.get(2).mineBlock(difficulty);	
+		
+		System.out.println("\nBlockchain is Valid: " + isChainValid());
+		
+		String blockchainJson = new GsonBuilder().setPrettyPrinting().create().toJson(blockchain);
+		System.out.println("\nThe block chain: ");
+		System.out.println(blockchainJson);
+	}
+	
+	public static Boolean isChainValid() {
+		Block currentBlock; 
+		Block previousBlock;
+		String hashTarget = new String(new char[difficulty]).replace('\0', '0');
+		
+		//循环区块链来检查 hash 值的合法性：
+		for(int i=1; i < blockchain.size(); i++) {
+			currentBlock = blockchain.get(i);
+			previousBlock = blockchain.get(i-1);
+			//比较当前区块存储的 hash 值和计算出来的 hash 值：
+			if(!currentBlock.hash.equals(currentBlock.calculateHash()) ){
+				System.out.println("Current Hashes not equal");			
+				return false;
+			}
+			//比较前一个区块存储的 hash 值和当前区块存储的 previousHash 值：
+			if(!previousBlock.hash.equals(currentBlock.previousHash) ) {
+				System.out.println("Previous Hashes not equal");
+				return false;
+			}
+			//检查 hash 值是否已经存在
+			if(!currentBlock.hash.substring( 0, difficulty).equals(hashTarget)) {
+				System.out.println("This block hasn't been mined");
+				return false;
+			}
+		}
+		return true;
+	}
+    }
+
+同时我们还检查了 isChainValid 值，并将其打印出来。
+
+运行这个程序的输出应该像下面这样：
+
+![](https://i.imgur.com/Ba0AiWr.png)
+
+对每个区块的计算都需要花费一些时间！ （大约3秒）你应该仔细研究下 difficulty 值，看看它是如何影响每个区块的计算时间的 :)
+如果有人试图去篡改你系统中区块链的数据：
+
+- 他们的区块链会变得不合法。
+- 他们将无法创建一个更长的区块链。
+- 网络中合法的区块链在链长度上将会具有时间优势。
+
+一个被篡改的区块链不会同时合法且具有长度优势的。*
+*除非它们的计算速度远远超过网络中所有其他节点的总和。比如有一台未来量子计算机之类的。
+恭喜你，你已经实现了自己的基础区块链！
+
+你的区块链：
+
+> 是由存储数据的一个个区块组成的。
+
+> 有一个将你所有的区块串连起来的数字签名。
+
+> 对于新加入的区块，需要一系列的挖矿验证性工作去检查其合法性。
+
+> 可以检查数据是否合法和是否被篡改。
