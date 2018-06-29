@@ -190,5 +190,192 @@
 
 签名可以由矿工进行验证，就像一个新交易被验证后添加到一个区块中。
 
-
 当检查区块链的合法性的时候，我们同样也可以检查签名。
+
+### 测试钱包和签名
+
+现在我们快完成一半的工作量了，去测试一下吧。在 NoobChain 类中，添加一些新变量并替换掉 main 方法中的相应内容：
+
+    import java.security.Security;
+    import java.util.ArrayList;
+    import java.util.Base64;
+    import com.google.gson.GsonBuilder;
+
+    public class NoobChain {
+	
+	public static ArrayList<Block> blockchain = new ArrayList<Block>();
+	public static int difficulty = 5;
+	public static Wallet walletA;
+	public static Wallet walletB;
+
+	public static void main(String[] args) {	
+		//设置 Bouncey castle 作为 Security Provider
+		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider()); 
+		//创建新的钱包 
+		walletA = new Wallet();
+		walletB = new Wallet();
+		//测试公钥和私钥
+		System.out.println("Private and public keys:");
+		System.out.println(StringUtil.getStringFromKey(walletA.privateKey));
+		System.out.println(StringUtil.getStringFromKey(walletA.publicKey));
+		//生成从 WalletA 到 walletB 的测试交易 
+		Transaction transaction = new Transaction(walletA.publicKey, walletB.publicKey, 5, null);
+		transaction.signature = transaction.generateSignature(walletA.privateKey);
+		//验证签名是否起作用并结合公钥验证
+		System.out.println("Is signature verified");
+		System.out.println(transaction.verifiySignature());
+		
+	}
+
+请务必记得把 boncey castle 添加为 security provider。
+
+我们创建了两个钱包，walletA 和 walletB，然后打印出 walletA 的私钥和公钥。生成了一个 Transaction 并使用 walletA 的公钥对其签名。然后就是希望一切能正常工作吧。
+
+你的输出应该像这样子：
+
+![](https://i.imgur.com/qXFTzcx.png)
+
+签名按照预想应该被验证为 true。
+
+现在我们只需创建/验证输出和输入，然后把交易存储在区块链中。
+
+### 输入和输出 1：自己是怎么持有加密货币的
+
+如果你想拥有一个比特币，那你要先收到一个比特币。交易账单不会真的把一个比特币加给你，也不会从发送方那里减去一个比特币。发送方有标识证明他/她之前收到过一个比特币，然后交易输出就会生成，显示一个比特币已经发送到你的地址（交易中的输入来源于之前交易的输出）。
+
+    你的钱包余额是你所有的未花费的交易输出。
+
+在这点上我们会跟比特币的叫法一样，把未花费的交易输出称为：UTXO。
+
+我们再写一个 TransactionInput 类：
+
+    public class TransactionInput {
+	public String transactionOutputId; //把 TransactionOutputs 标识为对应的transactionId
+	public TransactionOutput UTXO; //包括了所有未花费的交易输出
+	
+	public TransactionInput(String transactionOutputId) {
+		this.transactionOutputId = transactionOutputId;
+	}
+    }
+
+这个类会被用作未花费的 TransactionOutputs 的引用。transactionOutputId 被用来查找相关的 TransactionOutput，允许矿工检查你的所有权。
+
+还有 TransactionOutputs 类：
+
+    import java.security.PublicKey;
+
+    public class TransactionOutput {
+	public String id;
+	public PublicKey reciepient; //这些币的新持有者
+	public float value; //他们持有币的总额
+	public String parentTransactionId; //生成这个输出的之前交易的 id
+	
+	//构造方法
+	public TransactionOutput(PublicKey reciepient, float value, String parentTransactionId) {
+		this.reciepient = reciepient;
+		this.value = value;
+		this.parentTransactionId = parentTransactionId;
+		this.id = StringUtil.applySha256(StringUtil.getStringFromKey(reciepient)+Float.toString(value)+parentTransactionId);
+	}
+	
+	//检查币是否属于你
+	public boolean isMine(PublicKey publicKey) {
+		return (publicKey == reciepient);
+	}
+	
+    }
+
+交易输出会显示最终发送给各接收方的金额。这些输出，在新交易中会被当作输入，作为你有资金可以发送出去的凭据。
+
+
+### 输入和输出 2：处理交易
+
+区块可能收到很多交易并且区块链长度可能会很长，这样会花非常长时间去处理一个新的交易，因为需要去查找和检查它的输入。为了处理这个问题，我们要再写一个可用作输出的未花费交易集合。在 NoobChain 类中，加入 UTXOs 集合：
+
+
+    public class NoobChain {
+	
+	public static ArrayList<Block> blockchain = new ArrayList<Block>();
+	public static HashMap<String,TransactionOutputs> UTXOs = new HashMap<String,TransactionOutputs>(); //未花费交易的 list 
+	public static int difficulty = 5;
+	public static Wallet walletA;
+	public static Wallet walletB;
+
+	public static void main(String[] args) {
+
+HashMaps 通过 key 去找到 value，但你需要引入 java.util.HashMap。
+
+好，接下来就是重点了。
+
+把处理交易的方法 processTransaction 放到 Transaction 类里面：
+
+    //如果新交易可以生成，返回 true	
+    public boolean processTransaction() {
+		
+		if(verifiySignature() == false) {
+			System.out.println("#Transaction Signature failed to verify");
+			return false;
+		}
+				
+		//整合所有交易输入（确保是未花费的）
+		for(TransactionInput i : inputs) {
+			i.UTXO = NoobChain.UTXOs.get(i.transactionOutputId);
+		}
+
+		//检查交易是否合法
+		if(getInputsValue() < NoobChain.minimumTransaction) {
+			System.out.println("#Transaction Inputs to small: " + getInputsValue());
+			return false;
+		}
+		
+		//生成交易输出
+		float leftOver = getInputsValue() - value; //获取剩余的零钱
+		transactionId = calulateHash();
+		outputs.add(new TransactionOutput( this.reciepient, value,transactionId)); //send value to recipient
+		outputs.add(new TransactionOutput( this.sender, leftOver,transactionId)); //把剩下的“零钱“发回给发送方		
+				
+		//添加输出到未花费的 list 中
+		for(TransactionOutput o : outputs) {
+			NoobChain.UTXOs.put(o.id , o);
+		}
+		
+		//从 UTXO list里面移除已花费的交易输出
+		for(TransactionInput i : inputs) {
+			if(i.UTXO == null) continue; //if Transaction can't be found skip it 
+			NoobChain.UTXOs.remove(i.UTXO.id);
+		}
+		
+		return true;
+	}
+	
+    //返回输入(UTXOs) 值的总额
+	public float getInputsValue() {
+		float total = 0;
+		for(TransactionInput i : inputs) {
+			if(i.UTXO == null) continue; //if Transaction can't be found skip it 
+			total += i.UTXO.value;
+		}
+		return total;
+	}
+
+    //返回输出总额
+	public float getOutputsValue() {
+		float total = 0;
+		for(TransactionOutput o : outputs) {
+			total += o.value;
+		}
+		return total;
+	}
+
+同样再添加一个 getInputsValue 方法。
+
+通过这个方法进行一些检查，去验证交易合法性，然后整合输入并生成输出（看看代码里的注释会清楚点）。
+
+重要的一点，在最后，我们把 Inputs 从 UTXO list里面移除了，说明一个交易输出作为一个输入只能使用一次。因此，输入的总数值必须都花出去，这样发送方才有剩余“零钱”可拿回来。
+
+红色箭头是输出。注意绿色的输入来自之前的输出。
+
+最后更新我们的钱包：
+
+- 收集我们的余额（通过循环 UTXO list并检查一个交易输出是否是自己的钱币）
+- 为我们生成交易
