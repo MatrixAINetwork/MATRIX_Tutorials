@@ -73,3 +73,115 @@
 
 既然我们对 Wallet 类有了大致的认识，接下来看一下交易的部分。
 
+### 交易和签名
+
+每一个交易都包含一定大小的数据：
+
+- 资金发送方的公钥（地址）。
+- 资金接受方的公钥（地址）。
+- 要转账的资金数额。
+- 输入，是上一次交易的引用，证明发送方有资金可以发送出去。
+- 输出，是在交易中接收方收到的金额。 （在新交易中这些输出也会被当作是输入）
+- 一个加密的签名，证明地址的所有者是发送这个交易的人并且发送的数据没有被篡改。（例如，阻止第三方更改发送出去的数额）
+
+让我们写一个新的 Transaction 类：
+
+    import java.security.*;
+    import java.util.ArrayList;
+
+    public class Transaction {
+	
+	public String transactionId; // 这个也是交易的哈希值
+	public PublicKey sender; // 发送方地址/公钥
+	public PublicKey reciepient; // 接受方地址/公钥
+	public float value;
+	public byte[] signature; // 用来防止他人盗用我们钱包里的资金
+	
+	public ArrayList<TransactionInput> inputs = new ArrayList<TransactionInput>();
+	public ArrayList<TransactionOutput> outputs = new ArrayList<TransactionOutput>();
+	
+	private static int sequence = 0; // 对已生成交易个数的粗略计算 
+	
+	// 构造方法： 
+	public Transaction(PublicKey from, PublicKey to, float value,  ArrayList<TransactionInput> inputs) {
+		this.sender = from;
+		this.reciepient = to;
+		this.value = value;
+		this.inputs = inputs;
+	}
+	
+	// 用来计算交易的哈希值（可作为交易的 id）
+	private String calulateHash() {
+		sequence++; //increase the sequence to avoid 2 identical transactions having the same hash
+		return StringUtil.applySha256(
+				StringUtil.getStringFromKey(sender) +
+				StringUtil.getStringFromKey(reciepient) +
+				Float.toString(value) + sequence
+				);
+	}
+    }
+
+我们应该也写一个空的 TransactionInput 类和 TransactionOutput 类，我们之后会把它们补上。
+
+我们的交易类也包含了生成/验证签名和验证交易的相关方法。
+
+### 这些签名的目的和工作方式是什么？
+
+
+签名在我们区块链中起到的两个很重要的工作就是： 第一，它们允许所有者去花他们的钱，第二，防止他人在新的一个区块被挖出来之前（进入到整个区块链），篡改他们已提交的交易。
+
+    私钥用来对数据进行签名，公钥用来验证它的合法性。
+
+    例如：Bob 想给 Sally 两个菜鸟币，所以他们的钱包客户端生成这个交易并且递交给矿工，使其成为下一个区块的一部分。有一个矿工尝试把这两个币的接受人篡改为 John。然而，很幸运地是，Bob 已经用他的私钥把交易数据签名了，任何人使用 Bob 的公钥就能验证这个交易的数据是否被篡改了（其他人的公钥无法校验此交易）。
+
+（从之前的代码中）我们可以看到我们的签名会包含很多字节的信息，所以我们创建一个生成这些信息的方法。首先我们在 StringUtil 类中写几个辅助方法：
+
+
+    //采用 ECDSA 签名并返回结果（以字节形式）
+		public static byte[] applyECDSASig(PrivateKey privateKey, String input) {
+		Signature dsa;
+		byte[] output = new byte[0];
+		try {
+			dsa = Signature.getInstance("ECDSA", "BC");
+			dsa.initSign(privateKey);
+			byte[] strByte = input.getBytes();
+			dsa.update(strByte);
+			byte[] realSig = dsa.sign();
+			output = realSig;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return output;
+	}
+	
+	//验证一个字符串签名
+	public static boolean verifyECDSASig(PublicKey publicKey, String data, byte[] signature) {
+		try {
+			Signature ecdsaVerify = Signature.getInstance("ECDSA", "BC");
+			ecdsaVerify.initVerify(publicKey);
+			ecdsaVerify.update(data.getBytes());
+			return ecdsaVerify.verify(signature);
+		}catch(Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static String getStringFromKey(Key key) {
+		return Base64.getEncoder().encodeToString(key.getEncoded());
+	}
+
+不用过分地去弄懂这些方法具体怎么工作的。你真正要了解的是： applyECDSASig 方法接收发送方的私钥和字符串输入，进行签名并返回一个字节数组。verifyECDSASig 方法接收签名，公钥和字符串，根据签名的有效性返回 true 或 false。getStringFromKey 方法就是接受任何一种私钥，返回一个加密的字符串。
+
+现在我们在 Transaction 类中使用这些签名相关的方法，添加 generateSignature() 和 verifiySignature() 方法。
+
+    //对所有我们不想被篡改的数据进行签名
+    public void generateSignature(PrivateKey privateKey) {
+	String data = StringUtil.getStringFromKey(sender) + StringUtil.getStringFromKey(reciepient) + Float.toString(value)	;
+	signature = StringUtil.applyECDSASig(privateKey,data);		
+    }
+    //验证我们已签名的数据
+    public boolean verifiySignature() {
+	String data = StringUtil.getStringFromKey(sender) + StringUtil.getStringFromKey(reciepient) + Float.toString(value)	;
+	return StringUtil.verifyECDSASig(sender, data, signature);
+    }
+
