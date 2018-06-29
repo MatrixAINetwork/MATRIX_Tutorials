@@ -379,3 +379,311 @@ HashMaps 通过 key 去找到 value，但你需要引入 java.util.HashMap。
 
 - 收集我们的余额（通过循环 UTXO list并检查一个交易输出是否是自己的钱币）
 - 为我们生成交易
+
+    import java.security.*;
+    import java.security.spec.ECGenParameterSpec;
+    import java.util.ArrayList;
+    import java.util.HashMap;
+    import java.util.Map;
+
+    public class Wallet {
+	
+	public PrivateKey privateKey;
+	public PublicKey publicKey;
+	
+	public HashMap<String,TransactionOutput> UTXOs = new HashMap<String,TransactionOutput>(); //只是这个钱包拥有的 UTXO 
+	
+	public Wallet() {...
+		
+	public void generateKeyPair() {...
+	
+    //返回余额并存储这个钱包的 UTXO 
+	public float getBalance() {
+		float total = 0;	
+        for (Map.Entry<String, TransactionOutput> item: NoobChain.UTXOs.entrySet()){
+        	TransactionOutput UTXO = item.getValue();
+            if(UTXO.isMine(publicKey)) { //if output belongs to me ( if coins belong to me )
+            	UTXOs.put(UTXO.id,UTXO); //add it to our list of unspent transactions.
+            	total += UTXO.value ; 
+            }
+        }  
+		return total;
+	}
+	//从这个钱包生成并返回一个新的交易
+	public Transaction sendFunds(PublicKey _recipient,float value ) {
+		if(getBalance() < value) { //gather balance and check funds.
+			System.out.println("#Not Enough funds to send transaction. Transaction Discarded.");
+			return null;
+		}
+    //生成输入的 ArrayList
+		ArrayList<TransactionInput> inputs = new ArrayList<TransactionInput>();
+    
+		float total = 0;
+		for (Map.Entry<String, TransactionOutput> item: UTXOs.entrySet()){
+			TransactionOutput UTXO = item.getValue();
+			total += UTXO.value;
+			inputs.add(new TransactionInput(UTXO.id));
+			if(total > value) break;
+		}
+		
+		Transaction newTransaction = new Transaction(publicKey, _recipient , value, inputs);
+		newTransaction.generateSignature(privateKey);
+		
+		for(TransactionInput input: inputs){
+			UTXOs.remove(input.transactionOutputId);
+		}
+		return newTransaction;
+	}
+	
+    }
+
+自己想的话可以再给钱包添加其它的功能，例如记录交易历史。
+
+### 添加交易到我们的区块：
+
+现在我们有一个运作的交易系统，需要把它整合到区块链中。我们应该用交易的 ArrayList 替换掉之前在区块中占位的无用数据。然而，在一个区块中就可能有 1000 个交易，多到我们的哈希计算无法承受。但是不怕，我们可以使用交易的 merkle root 进行处理（你很快就会读到关于 merkle tree 的东西）。
+
+在 StringUtils 添加一个方法去生成 merkleroot：
+
+    //Tacks in array of transactions and returns a merkle root.
+    public static String getMerkleRoot(ArrayList<Transaction> transactions) {
+		int count = transactions.size();
+		ArrayList<String> previousTreeLayer = new ArrayList<String>();
+		for(Transaction transaction : transactions) {
+			previousTreeLayer.add(transaction.transactionId);
+		}
+		ArrayList<String> treeLayer = previousTreeLayer;
+		while(count > 1) {
+			treeLayer = new ArrayList<String>();
+			for(int i=1; i < previousTreeLayer.size(); i++) {
+				treeLayer.add(applySha256(previousTreeLayer.get(i-1) + previousTreeLayer.get(i)));
+			}
+			count = treeLayer.size();
+			previousTreeLayer = treeLayer;
+		}
+		String merkleRoot = (treeLayer.size() == 1) ? treeLayer.get(0) : "";
+		return merkleRoot;
+	}
+
+我会很快用一个能返回真正 merkleroot 的方法替换掉当前方法，但这个方法先暂时顶替下。
+
+现在来完成 Block 类中需要修改的地方：
+
+    import java.util.ArrayList;
+    import java.util.Date;
+
+    public class Block {
+	
+	public String hash;
+	public String previousHash; 
+	public String merkleRoot;
+	public ArrayList<Transaction> transactions = new ArrayList<Transaction>(); //我们的数据就是一个简单的信息
+	public long timeStamp; //从1970/1/1到现在经过的毫秒时间
+	public int nonce;
+	
+	//构造方法  
+	public Block(String previousHash ) {
+		this.previousHash = previousHash;
+		this.timeStamp = new Date().getTime();
+		
+		this.hash = calculateHash(); //确保设置了其它值之后再计算哈希值
+	}
+	
+	//基于区块内容计算新的哈希值
+	public String calculateHash() {
+		String calculatedhash = StringUtil.applySha256( 
+				previousHash +
+				Long.toString(timeStamp) +
+				Integer.toString(nonce) + 
+				merkleRoot
+				);
+		return calculatedhash;
+	}
+	
+	//哈希目标达成的话，增加 nonce 值
+	public void mineBlock(int difficulty) {
+		merkleRoot = StringUtil.getMerkleRoot(transactions);
+		String target = StringUtil.getDificultyString(difficulty); //Create a string with difficulty * "0" 
+		while(!hash.substring( 0, difficulty).equals(target)) {
+			nonce ++;
+			hash = calculateHash();
+		}
+		System.out.println("Block Mined!!! : " + hash);
+	}
+	
+	//添加交易到区块
+	public boolean addTransaction(Transaction transaction) {
+		//process transaction and check if valid, unless block is genesis block then ignore.
+		if(transaction == null) return false;		
+		if((previousHash != "0")) {
+			if((transaction.processTransaction() != true)) {
+				System.out.println("Transaction failed to process. Discarded.");
+				return false;
+			}
+		}
+		transactions.add(transaction);
+		System.out.println("Transaction Successfully added to Block");
+		return true;
+	}
+	
+    }
+
+我们也更新了 Block 的构造方法，因为我们不用再传入字符串，还有在计算哈希值方法中也加入了 merkle root 部分。
+
+addTransaction 方法会添加交易而且只在交易成功添加时返回 true。
+
+### 总结
+
+现在应该测试从钱包里发送出去菜鸟币或通过钱包接收菜鸟币，并更新区块链的合法性检查。但首先我们要找到如何把新挖的菜鸟币整合到系统中的办法，有很多途径去生成新币，拿比特币的区块链来说：矿工可以把一个交易变成自己的一部分，作为区块被挖出来时的奖励。现在的话，我们就只是在第一个区块（创始区块）放出一定数量的币，满足我们项目需要即可。像比特币一样，我们会硬编码创始区块，写一个固定的值。
+让我们完整地更新 NoobChain 类：
+
+- 一个创始区块，发了 100 个菜鸟币给钱包 A。
+- 因为增加了交易部分，更新了区块链的合法性检查。
+- 一些测试类交易去验证是否正常运作。
+
+    public class NoobChain {
+	
+	public static ArrayList<Block> blockchain = new ArrayList<Block>();
+	public static HashMap<String,TransactionOutput> UTXOs = new HashMap<String,TransactionOutput>();
+	
+	public static int difficulty = 3;
+	public static float minimumTransaction = 0.1f;
+	public static Wallet walletA;
+	public static Wallet walletB;
+	public static Transaction genesisTransaction;
+
+	public static void main(String[] args) {	
+		//添加我们的区块到区块链 ArrayList中
+		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider()); //设置 Bouncey castle 为 Security Provider
+		
+		//生成钱包
+		walletA = new Wallet();
+		walletB = new Wallet();		
+		Wallet coinbase = new Wallet();
+		
+		//生成创始交易，内容是发送100个菜鸟币到 walletA
+		genesisTransaction = new Transaction(coinbase.publicKey, walletA.publicKey, 100f, null);
+		genesisTransaction.generateSignature(coinbase.privateKey);	 //手动对创始交易签名
+		genesisTransaction.transactionId = "0"; //手动设置交易 id
+		genesisTransaction.outputs.add(new TransactionOutput(genesisTransaction.reciepient, genesisTransaction.value, genesisTransaction.transactionId)); //手动添加交易输出
+		UTXOs.put(genesisTransaction.outputs.get(0).id, genesisTransaction.outputs.get(0)); //在 UTXO list 里面保存第一个交易很重要
+		
+		System.out.println("Creating and Mining Genesis block... ");
+		Block genesis = new Block("0");
+		genesis.addTransaction(genesisTransaction);
+		addBlock(genesis);
+		
+		//测试
+		Block block1 = new Block(genesis.hash);
+		System.out.println("\nWalletA's balance is: " + walletA.getBalance());
+		System.out.println("\nWalletA is Attempting to send funds (40) to WalletB...");
+		block1.addTransaction(walletA.sendFunds(walletB.publicKey, 40f));
+		addBlock(block1);
+		System.out.println("\nWalletA's balance is: " + walletA.getBalance());
+		System.out.println("WalletB's balance is: " + walletB.getBalance());
+		
+		Block block2 = new Block(block1.hash);
+		System.out.println("\nWalletA Attempting to send more funds (1000) than it has...");
+		block2.addTransaction(walletA.sendFunds(walletB.publicKey, 1000f));
+		addBlock(block2);
+		System.out.println("\nWalletA's balance is: " + walletA.getBalance());
+		System.out.println("WalletB's balance is: " + walletB.getBalance());
+		
+		Block block3 = new Block(block2.hash);
+		System.out.println("\nWalletB is Attempting to send funds (20) to WalletA...");
+		block3.addTransaction(walletB.sendFunds( walletA.publicKey, 20));
+		System.out.println("\nWalletA's balance is: " + walletA.getBalance());
+		System.out.println("WalletB's balance is: " + walletB.getBalance());
+		
+		isChainValid();
+		
+	}
+	
+	public static Boolean isChainValid() {
+		Block currentBlock; 
+		Block previousBlock;
+		String hashTarget = new String(new char[difficulty]).replace('\0', '0');
+		HashMap<String,TransactionOutput> tempUTXOs = new HashMap<String,TransactionOutput>(); //对给定的区块状态，一个临时的未花费交易输出list
+		tempUTXOs.put(genesisTransaction.outputs.get(0).id, genesisTransaction.outputs.get(0));
+		
+		//循环区块链去检查哈希值
+		for(int i=1; i < blockchain.size(); i++) {
+			
+			currentBlock = blockchain.get(i);
+			previousBlock = blockchain.get(i-1);
+			//比较当前区块存储的哈希值和计算得出的哈希值
+			if(!currentBlock.hash.equals(currentBlock.calculateHash()) ){
+				System.out.println("#Current Hashes not equal");
+				return false;
+			}
+			//比较前一个区块的哈希值和当前区块中存储的上一个区块哈希值
+			if(!previousBlock.hash.equals(currentBlock.previousHash) ) {
+				System.out.println("#Previous Hashes not equal");
+				return false;
+			}
+			//检查哈希值是否解出来了
+			if(!currentBlock.hash.substring( 0, difficulty).equals(hashTarget)) {
+				System.out.println("#This block hasn't been mined");
+				return false;
+			}
+			
+			//循环区块链交易
+			TransactionOutput tempOutput;
+			for(int t=0; t <currentBlock.transactions.size(); t++) {
+				Transaction currentTransaction = currentBlock.transactions.get(t);
+				
+				if(!currentTransaction.verifiySignature()) {
+					System.out.println("#Signature on Transaction(" + t + ") is Invalid");
+					return false; 
+				}
+				if(currentTransaction.getInputsValue() != currentTransaction.getOutputsValue()) {
+					System.out.println("#Inputs are note equal to outputs on Transaction(" + t + ")");
+					return false; 
+				}
+				
+				for(TransactionInput input: currentTransaction.inputs) {	
+					tempOutput = tempUTXOs.get(input.transactionOutputId);
+					
+					if(tempOutput == null) {
+						System.out.println("#Referenced input on Transaction(" + t + ") is Missing");
+						return false;
+					}
+					
+					if(input.UTXO.value != tempOutput.value) {
+						System.out.println("#Referenced input Transaction(" + t + ") value is Invalid");
+						return false;
+					}
+					
+					tempUTXOs.remove(input.transactionOutputId);
+				}
+				
+				for(TransactionOutput output: currentTransaction.outputs) {
+					tempUTXOs.put(output.id, output);
+				}
+				
+				if( currentTransaction.outputs.get(0).reciepient != currentTransaction.reciepient) {
+					System.out.println("#Transaction(" + t + ") output reciepient is not who it should be");
+					return false;
+				}
+				if( currentTransaction.outputs.get(1).reciepient != currentTransaction.sender) {
+					System.out.println("#Transaction(" + t + ") output 'change' is not sender.");
+					return false;
+				}
+				
+			}
+			
+		}
+		System.out.println("Blockchain is valid");
+		return true;
+	}
+	
+	public static void addBlock(Block newBlock) {
+		newBlock.mineBlock(difficulty);
+		blockchain.add(newBlock);
+	}
+    }
+
+这些是比较长的方法 。。。
+
+我们的输出应该是像这样的：
+
