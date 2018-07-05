@@ -85,3 +85,5 @@
 [1] 关于建立加密货币的复杂性在[这里](https://link.juejin.im/?target=https%3A%2F%2Fdownload.wpsoftware.net%2Fbitcoin%2Falts.pdf)有详细介绍
 
 [2]默认的“mintxfee”：支付该费用以下的交易不会被节点接受；这能减少来自小额交易的垃圾信息。有个例外，花费旧比特币的交易则能豁免这个限制（被称之为“优先交易”）因为它本质上是有限资源：点击[此处](https://link.juejin.im/?target=https%3A%2F%2Fen.bitcoin.it%2Fwiki%2FTransaction_fees%23Settings)
+
+[3] 默认的“dust limit”：在这限额以下的小额付款不回呗节点接受；这避免产生因经济影响过小而没人使用的小额款项。比特币的这个限制具有争议性并在这里有更多讨论(https://link.juejin.im/?target=https%3A%2F%2Fbitcointalk.org%2Findex.php%3Ftopic%3D196138.0)困惑还陆续而来。
