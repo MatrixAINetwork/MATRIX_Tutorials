@@ -38,3 +38,10 @@
 - 假设你要和越来越多的专业加密货币买手打交道来完成一次 ICO。
 - 假设监管者迟早要用某种形式来监管的。提前采取措施来减轻现有的和将来的危机。
 - 形成适应未来未知的灵活性。比如，小心的定义所有代币条款。对平台用例和额外资本的适应会是个优势。
+
+#### 开源的备份资料
+
+点击[此处](https://link.juejin.im/?target=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2F1cpDOY_AnbO9UiUIDde7CagHzfOTDHVw4l927_7sdKSw%2Fedit%3Fusp%3Dsharing)查看所有数据分析的 google 表格
+
+最后说一下，我们知道现在有关于俗称的 ICO 也就是初始代币发行的用词正确性的讨论。我们更喜欢用 Token Distribution，有的人倾向于 TGE 或者 Token Generation Event。 不管是哪一种，对我们而言他都只是描述事物的一种形式。监管机构将不会受到用来描述这一类交易的名字的影响。我们在本文中只能继续用 ICO 因为这是最常见也最被广泛理解的术语。
+
