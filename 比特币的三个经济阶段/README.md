@@ -36,7 +36,7 @@
 一次性增加费用冒着不道德的风险，因为对扩张的宣传被认为比改善工程简单且不费钱。
 尽管在预料之中，软件和服务却都没有为此转变做准备。也许是因为没有谁觉得这次转变真的会发生。[7]
 
-开发者一般希望跟随社区的步伐而不是带领。在经济上具有重大意义或有争议的变化，加大了这种依赖性。
+开发者一般希望跟随社区的步伐而不是带领。在经济上具有重大意义或有争议的变化，加大了这种依赖性。[8]
 
 大而复杂的系统转变需要尽可能地循序渐进以避免意料外的副作用。第三阶段到来的同时，第二阶段提供的渐变给予了比特币相关的软件和服务足够时间来积累经验，迎接新阶段的来临。
 
@@ -94,5 +94,6 @@
 
 [6]来区块的默认大小增加到 75 万字节[blockchain.info/charts/avg-…](https://link.juejin.im/?target=https%3A%2F%2Fblockchain.info%2Fcharts%2Favg-block-size%3Ftimespan%3Dall)。矿工抱怨他们的“孤儿率”在增加：区块连不上整个区块链因为他们到达其他矿工所需的时间太长。对大的矿工这个问题并不大，而且他们也更可能找到下个区块。这似乎是驱动Ghash.io成长的原因：在最大的矿工群里孤儿率是最低的。[www.coindesk.com/bitcoin-min…](https://link.juejin.im/?target=https%3A%2F%2Fwww.coindesk.com%2Fbitcoin-mining-detente-ghash-io-51-issue%2F)
 
-[7]2017 年 11 月，尽管Segregated Witness这项技术早在2015年年底完成，blockchain.info和Coinbase（两个都拥有大交易容量）都没有采用该项技术。
+[7] 2017 年 11 月，尽管Segregated Witness这项技术早在2015年年底完成，blockchain.info和Coinbase（两个都拥有大交易容量）都没有采用该项技术。
 
+[8] 这个趋势在匿名创始人中本聪离开计划的时候开始。
