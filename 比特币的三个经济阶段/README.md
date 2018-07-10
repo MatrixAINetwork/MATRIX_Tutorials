@@ -30,7 +30,7 @@
 
 开发者不想支持单纯增加费用通常源于几个因素：
 
-过去的加价增加了中心化的压力，这包括有一段时间过半数的网络是被同一个矿池支配着。
+过去的加价增加了中心化的压力，这包括有一段时间过半数的网络是被同一个矿池支配着。[6]
 
 这会是比特币有史以来首个向后不兼容的改变。
 一次性增加费用冒着不道德的风险，因为对扩张的宣传被认为比改善工程简单且不费钱。
@@ -91,3 +91,6 @@
 [4] Pay-to-script-hash 把“我需要什么证明我花费了这个比特币”这句对白给了花费者。在这之前，整个网络要记得花费每个币的特定的要求（也花费很多时间）[点此阅读]( https://link.juejin.im/?target=https%3A%2F%2Fen.bitcoin.it%2Fwiki%2FPay_to_script_hash)
 
 [5] 费用取决于交易的大小而不是交易金额的大小。这类似于根据重量收钱的快递：寄 1000 个一美分将会比寄100美元纸币贵。虽然很有道理，但对于不知道自己拿的是纸币还是硬币的人来说还是不好估计。
+
+[6]来区块的默认大小增加到 75 万字节[blockchain.info/charts/avg-…](https://link.juejin.im/?target=https%3A%2F%2Fblockchain.info%2Fcharts%2Favg-block-size%3Ftimespan%3Dall)。矿工抱怨他们的“孤儿率”在增加：区块连不上整个区块链因为他们到达其他矿工所需的时间太长。对大的矿工这个问题并不大，而且他们也更可能找到下个区块。这似乎是驱动Ghash.io成长的原因：在最大的矿工群里孤儿率是最低的。[www.coindesk.com/bitcoin-min…](https://link.juejin.im/?target=https%3A%2F%2Fwww.coindesk.com%2Fbitcoin-mining-detente-ghash-io-51-issue%2F)
+
