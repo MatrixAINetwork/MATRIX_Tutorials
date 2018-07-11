@@ -103,3 +103,5 @@
 [9] 不幸的是增长总是跟着优化，意味着新节点于网络同步的速度并不会比前几年快。
 
 [11] Matt Corallo 同时发布代码让你运行自己的高效中继网络和运行他自己的。 bitcoinfibre.org/
+
+[12] 因为区块里的大部分交易都已经被看见，节点通过发送概要省下许多时间和带宽。事实上，现在平均的区块增长速度比交易增长快 [bitcoincore.org/en/2016/06/…](https://link.juejin.im/?target=https%3A%2F%2Fbitcoincore.org%2Fen%2F2016%2F06%2F07%2Fcompact-blocks-faq%2F)
