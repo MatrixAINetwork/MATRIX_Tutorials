@@ -108,3 +108,5 @@
 
 [13] 一篇关于演变中的技巧和挑战的好概要：[blog.bitgo.com/the-challen…](https://link.juejin.im/?target=https%3A%2F%2Fblog.bitgo.com%2Fthe-challenges-of-bitcoin-transaction-fee-estimation-e47a64a61c72)
 
+[14] 隔离见证把交易签名转移到区块的其他地方。新颖的地方在于该设计中记录签名的个数仿佛这些签名只有四分之一多。如果现有的交易所有人都用这种交易，这意味着区块大小会平均在 2MB 的大小。[bitcoincore.org/en/2016/01/…](https://link.juejin.im/?target=https%3A%2F%2Fbitcoincore.org%2Fen%2F2016%2F01%2F26%2Fsegwit-benefits%2F)
+
