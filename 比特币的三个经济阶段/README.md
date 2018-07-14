@@ -110,3 +110,4 @@
 
 [14] 隔离见证把交易签名转移到区块的其他地方。新颖的地方在于该设计中记录签名的个数仿佛这些签名只有四分之一多。如果现有的交易所有人都用这种交易，这意味着区块大小会平均在 2MB 的大小。[bitcoincore.org/en/2016/01/…](https://link.juejin.im/?target=https%3A%2F%2Fbitcoincore.org%2Fen%2F2016%2F01%2F26%2Fsegwit-benefits%2F)
 
+[15] 软件也在考虑让使用手续费的人承担部分费用而不是单让交易人支付。这样的话把两者划分在同一个区块也许有其价值：所谓的“子还父债”。[bitcoincore.org/en/faq/opti…](https://link.juejin.im/?target=https%3A%2F%2Fbitcoincore.org%2Fen%2Ffaq%2Foptin_rbf%2F%23what-is-child-pays-for-parent-cpfp)
