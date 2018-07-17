@@ -117,3 +117,5 @@
 [17] 虽然每个交易需要时间核对，但低配置的CPU也足以处理这种运算：主要限制是网络带宽还有长期的储存需求。[https://bitcoincore.org/en/2016/06/24/segwit-next-steps/#schnorr-signatures]
 
 [18]数字货币集团（Digital Currency Group）的纽约协议的是通过很大的努力才能达成的。[medium.com/@DCGco/bitc…](https://link.juejin.im/?target=https%3A%2F%2Fmedium.com%2F%40DCGco%2Fbitcoin-scaling-agreement-at-consensus-2017-133521fe9a77)
+
+[19] “也许其他人会支付”而不是比特币用户这种说法是站不住脚的，因为这世上没有免费的午餐。[medium.com/@octskyward…](https://link.juejin.im/?target=https%3A%2F%2Fmedium.com%2F%40octskyward%2Fhashing-7d04a887acc8)
