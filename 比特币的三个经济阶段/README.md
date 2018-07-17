@@ -115,3 +115,5 @@
 [16] 隔离见证把交易签名转移到区块的其他地方。新颖的地方在于该设计中记录签名的个数仿佛这些签名只有四分之一多。如果现有的交易所有人都用这种交易，这意味着区块大小会平均在 2MB 的大小 [https://link.juejin.im/?target=https%3A%2F%2Fbitcoincore.org%2Fen%2F2016%2F01%2F26%2Fsegwit-benefits%2F](https://link.juejin.im/?target=https%3A%2F%2Fbitcoincore.org%2Fen%2F2016%2F01%2F26%2Fsegwit-benefits%2F)
 
 [17] 虽然每个交易需要时间核对，但低配置的CPU也足以处理这种运算：主要限制是网络带宽还有长期的储存需求。[https://bitcoincore.org/en/2016/06/24/segwit-next-steps/#schnorr-signatures]
+
+[18]数字货币集团（Digital Currency Group）的纽约协议的是通过很大的努力才能达成的。[medium.com/@DCGco/bitc…](https://link.juejin.im/?target=https%3A%2F%2Fmedium.com%2F%40DCGco%2Fbitcoin-scaling-agreement-at-consensus-2017-133521fe9a77)
