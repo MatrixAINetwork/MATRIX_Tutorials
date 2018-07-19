@@ -138,5 +138,8 @@ s 个议员必须在区块被提交之前对某个交易达成共识。
 
 图 7:确定发言人并设置视图
 
+1. 发言人广播提案：
+<prepareRequest, h, k, p, bloc, [block]sigp>
 
 
+![](https://i.imgur.com/PpgYswC.png)
