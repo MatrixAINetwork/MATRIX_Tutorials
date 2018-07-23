@@ -128,3 +128,5 @@
 ](https://link.juejin.im/?target=http%3A%2F%2Fwww.thehalvening.com%2F)
 
 [23] 这假定每个区块 3BTC，稍微高于现平均水平，约等于这图表里 450BTC 一天：[blockchain.info/charts/tran…](https://link.juejin.im/?target=https%3A%2F%2Fblockchain.info%2Fcharts%2Ftransaction-fees%3Ftimespan%3Dall%23)
+
+[24] 这只假设以美元计算矿工的收入与现在一样，其中一半来自手续费。
