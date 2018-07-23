@@ -127,4 +127,4 @@
 [22] 每 210,000 个区块产生就会发生“折半”。比特币在 2009 年一月开始以 50BTC 作为报酬演变成 2012 年十一月的 25BTC，到再之后 2016 年七月的 12.5 个。你可以浏览下面的链接追踪这兴奋的变化。[www.thehalvening.com/
 ](https://link.juejin.im/?target=http%3A%2F%2Fwww.thehalvening.com%2F)
 
-
+[23] 这假定每个区块 3BTC，稍微高于现平均水平，约等于这图表里 450BTC 一天：[blockchain.info/charts/tran…](https://link.juejin.im/?target=https%3A%2F%2Fblockchain.info%2Fcharts%2Ftransaction-fees%3Ftimespan%3Dall%23)
