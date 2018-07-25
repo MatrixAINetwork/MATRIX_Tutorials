@@ -136,3 +136,5 @@
 [26] 如果比特币的价格大幅上升，那么矿工也许能接受小额手续费。然而如果你的公司要依靠比特币升值才能存活，那么投资者为什么不直接投资到比特币上呢？
 
 [27] 在垄断挖矿机构能敲诈比特币商户的前提下（通过筛选交易），投资到挖矿和其分散式扩张能让对手难以针对某一商户。虽然两者仍未发生，但这做法有一定的意义。
+
+[28] [en.wikipedia.org/wiki/Inflat…](https://link.juejin.im/?target=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FInflation%23Positive)
