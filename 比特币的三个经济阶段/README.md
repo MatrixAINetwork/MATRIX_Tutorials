@@ -138,3 +138,5 @@
 [27] 在垄断挖矿机构能敲诈比特币商户的前提下（通过筛选交易），投资到挖矿和其分散式扩张能让对手难以针对某一商户。虽然两者仍未发生，但这做法有一定的意义。
 
 [28] [en.wikipedia.org/wiki/Inflat…](https://link.juejin.im/?target=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FInflation%23Positive)
+
+[30] [en.bitcoin.it/wiki/Prohib…](https://link.juejin.im/?target=https%3A%2F%2Fen.bitcoin.it%2Fwiki%2FProhibited_changes)
