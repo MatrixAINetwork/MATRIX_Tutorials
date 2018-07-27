@@ -142,3 +142,5 @@
 [30] [en.bitcoin.it/wiki/Prohib…](https://link.juejin.im/?target=https%3A%2F%2Fen.bitcoin.it%2Fwiki%2FProhibited_changes)
 
 [31] 我也会反对这种提议并且相信这是不可行的。但我深信有人会提出而且积极宣传。
+
+[32] 特别注意：如果类似 Pieter Wuille 每年 17% 增长被采用了，在某个时刻容量会过剩甚至把费用减少到零而影响链的安全性。开发者理应提议一种在非繁忙时段采用最低收费的软分叉，而且和矿工一同抵抗短期用户和商户。
