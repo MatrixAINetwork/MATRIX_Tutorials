@@ -146,3 +146,6 @@
 [32] 特别注意：如果类似 Pieter Wuille 每年 17% 增长被采用了，在某个时刻容量会过剩甚至把费用减少到零而影响链的安全性。开发者理应提议一种在非繁忙时段采用最低收费的软分叉，而且和矿工一同抵抗短期用户和商户。
 
 [33] 区块大小跟随科技进步[gist.github.com/sipa/c65665…](https://link.juejin.im/?target=https%3A%2F%2Fgist.github.com%2Fsipa%2Fc65665fc360ca7a176a6)
+
+[34] 例如 Mark Friedenbach 的 flexcap 提议，在忽略资助的情况下是最容易实现的。[https://scalingbitcoin.org/transcript/hongkong2015/a-flexible-limit-trading-subsidy-for-larger-blocks](https://scalingbitcoin.org/transcript/hongkong2015/a-flexible-limit-tra6  ding-subsidy-for-larger-blocks)
+
