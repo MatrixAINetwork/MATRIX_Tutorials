@@ -140,3 +140,5 @@
 [28] [en.wikipedia.org/wiki/Inflat…](https://link.juejin.im/?target=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FInflation%23Positive)
 
 [30] [en.bitcoin.it/wiki/Prohib…](https://link.juejin.im/?target=https%3A%2F%2Fen.bitcoin.it%2Fwiki%2FProhibited_changes)
+
+[31] 我也会反对这种提议并且相信这是不可行的。但我深信有人会提出而且积极宣传。
