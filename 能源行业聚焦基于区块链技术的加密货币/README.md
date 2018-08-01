@@ -32,3 +32,14 @@ Envion 是应用移动挖矿，重新分配以及智能可升级的新型挖矿�
 
 Envion 的品质体系确保运输和准备工作都更加轻松，因此可以免受政策限制。限制越少，关联价格也就越低。
 
+此外，这家公司的利润也非常丰厚。基于 161% 的年投资回报率，公司战略可以持续增加移动挖矿设备来增加利润。公司也通过配备更加高效的传输设备来增加利润。
+
+公司每周会进行股息分配，其中 75％被列入分红，另外的 25% 被用于重新投资。EVC 令牌赋予 Envion 用户拥有否决权。该权利让令牌持有者可以非常灵活地参与公司的决策过程。
+
+通过 Envion，您可以获得周期关系表，周期观察，持续改进以及预测报告。
+
+尽管这家公司是一家初创公司，但投资人都非常看好它的盈利前景。公司提供了一套令人兴奋并且有利可图的挖矿程序，所有内容都遵循着标准的白皮书，这是一项拥有巨大价值的专业知识产权。
+
+- Website — [www.envion.org/en/](https://link.juejin.im/?target=https%3A%2F%2Fwww.envion.org%2Fen%2F)
+
+- White Paper — [www.envion.org/en/whitepap…](https://link.juejin.im/?target=https%3A%2F%2Fwww.envion.org%2Fen%2Fwhitepaper%2F)
