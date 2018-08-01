@@ -49,3 +49,59 @@
 Blockchain 类的设计
 
 Blockchain 类负责管理链。它用来存储交易信息，也有一些帮助方法用来将新区块添加到链中。我们接着来实现一些方法
+
+区块长什么样？
+
+每个区块都有其索引，时间戳（Unix 时间），交易列表，证明（稍后解释），以及前序区块的哈希值。
+
+下面是一个单独区块
+
+
+    block = {
+    'index': 1,
+    'timestamp': 1506057125.900785,
+    'transactions': [
+        {
+            'sender': "8527147fe1f5426f9dd545de4b27ee00",
+            'recipient': "a77f5cdfa2934df3954a5c7c7da5df1f",
+            'amount': 5,
+        }
+    ],
+    'proof': 324984774000,
+    'previous_hash': "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+    }
+
+
+区块链中的区块的例子
+
+到这里链的概念就介绍清楚了：每个新区块都包含上一个区块的哈希。这一重要概念使得区块链的不可变性成为可能：如果攻击者篡改了链中的前序区块，所有的后续区块的哈希都是错的。
+
+理解了吗？如果没有想明白，花点时间思考一下，这是区块链的核心思想。
+
+
+### 在区块中添加交易信息
+此外，还需要在区块中添加交易信息的方法。用 new_transaction() 方法来做这件事吧，代码写出来非常直观：
+
+
+    class Blockchain(object):
+    ...
+    
+    def new_transaction(self, sender, recipient, amount):
+        """
+        Creates a new transaction to go into the next mined Block
+        :param sender: <str> Address of the Sender
+        :param recipient: <str> Address of the Recipient
+        :param amount: <int> Amount
+        :return: <int> The index of the Block that will hold this transaction
+        """
+
+        self.current_transactions.append({
+            'sender': sender,
+            'recipient': recipient,
+            'amount': amount,
+        })
+
+        return self.last_block['index'] + 1
+
+new_transaction() 在列表中添加新交易之后，会返回该交易被加到的区块的索引，也就是指向下一个要挖的区块。稍后会讲到这对于之后提交交易的用户会有用。
+
