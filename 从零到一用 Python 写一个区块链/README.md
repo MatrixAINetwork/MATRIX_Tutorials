@@ -105,3 +105,79 @@ Blockchain 类负责管理链。它用来存储交易信息，也有一些帮助
 
 new_transaction() 在列表中添加新交易之后，会返回该交易被加到的区块的索引，也就是指向下一个要挖的区块。稍后会讲到这对于之后提交交易的用户会有用。
 
+
+### 创建新区块
+
+实例化 Blockchain 类之后，需要新建一个创始区块，它没有任何前序区块。此外还要在创始区块中加入证明，证明来自挖矿（或者工作量证明）。稍后再来讨论挖矿这件事。
+
+除了要在构造函数中创建创始区块，我们还要实现 new_block()，new_transaction() 和 hash()。
+
+
+    import hashlib
+    import json
+    from time import time
+ 
+
+    class Blockchain(object):
+    def __init__(self):
+        self.current_transactions = []
+        self.chain = []
+
+        # Create the genesis block
+        self.new_block(previous_hash=1, proof=100)
+
+    def new_block(self, proof, previous_hash=None):
+        """
+        Create a new Block in the Blockchain
+        :param proof: <int> The proof given by the Proof of Work algorithm
+        :param previous_hash: (Optional) <str> Hash of previous Block
+        :return: <dict> New Block
+        """
+
+        block = {
+            'index': len(self.chain) + 1,
+            'timestamp': time(),
+            'transactions': self.current_transactions,
+            'proof': proof,
+            'previous_hash': previous_hash or self.hash(self.chain[-1]),
+        }
+
+        # Reset the current list of transactions
+        self.current_transactions = []
+
+        self.chain.append(block)
+        return block
+
+    def new_transaction(self, sender, recipient, amount):
+        """
+        Creates a new transaction to go into the next mined Block
+        :param sender: <str> Address of the Sender
+        :param recipient: <str> Address of the Recipient
+        :param amount: <int> Amount
+        :return: <int> The index of the Block that will hold this transaction
+        """
+        self.current_transactions.append({
+            'sender': sender,
+            'recipient': recipient,
+            'amount': amount,
+        })
+
+        return self.last_block['index'] + 1
+
+    @property
+    def last_block(self):
+        return self.chain[-1]
+
+    @staticmethod
+    def hash(block):
+        """
+        Creates a SHA-256 hash of a Block
+        :param block: <dict> Block
+        :return: <str>
+        """
+
+        # We must make sure that the Dictionary is Ordered, or we'll have inconsistent hashes
+        block_string = json.dumps(block, sort_keys=True).encode()
+        return hashlib.sha256(block_string).hexdigest()
+
+上面的代码还是比较直观的，还有一些注释和文档字符串做进一步解释。这样就差不多可以表示区块链了。但是到了这一步，你一定好奇新区块是怎样被创建，锻造或者挖出来的。
