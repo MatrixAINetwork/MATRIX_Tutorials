@@ -48,3 +48,46 @@
 更多知识，可以参阅：[Time Series Forecasting as Supervised Learning](https://link.juejin.im/?target=http%3A%2F%2Fmachinelearningmastery.com%2Ftime-series-forecasting-supervised-learning%2F)
 
 
+### Pandas 的 shift() 函数
+
+我们将时间序列数据转化为监督学习问题的关键就是使用 Pandas 的 shift() 函数。
+
+给定一个 DataFrame，shift() 函数会将输入的列复制一份，然后将副本列整体往后移动（最前面的数据空位会用 NaN 填充）或者往前移动（最后面的数据空位会用 NaN 填充）。
+
+这样可以创建一个滞后值列，加上观察列，就能将时间序列数据集变成监督学习数据集的格式。
+
+让我们看看 shift 函数实际用起来效果如何。
+
+我们可以通过下面的代码模拟一个长度为 10 的时间序列数据集，此时它在 DataFrame 中为单独的一列：
+
+    from pandas import DataFrame
+    df = DataFrame()
+    df['t'] = [x for x in range(10)]
+    print(df)
+
+运行上面的样例，将时间序列数据输出，其每一行都为带有索引的观察组数据
+
+    t
+    0  0
+    1  1
+    2  2
+    3  3
+    4  4
+    5  5
+    6  6
+    7  7
+    8  8
+    9  9
+
+我们可以在数据顶部插入一行，将观察组的数据整体下挪一位。由于最上面插入的新行没有数据，因此我们可以用 NaN 填充来表示这儿“没有数据”。
+
+shift 函数可以完成这些操作。我们可以将 shift 函数“挪动”过的新列插入原始序列的旁边。
+
+    from pandas import DataFrame
+    df = DataFrame()
+    df['t'] = [x for x in range(10)]
+    df['t-1'] = df['t'].shift(1)
+    print(df)
+
+运行上面的样例，你将得到一个包含两列的数据集。第一列是原始的观察组，第二列是经由 shift 函数挪动生成的新列。
+
