@@ -279,3 +279,56 @@ return：返回监督学习格式的数据集，数据类型为 Pandas DataFrame
     data = series_to_supervised(values, 3)
 
 完整样例如下：
+
+    from pandas import DataFrame
+    from pandas import concat
+
+    def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
+    """
+     函数用途：将时间序列转化为监督学习数据集。
+    参数说明：
+    data: 观察值序列，数据类型可以是 list 或者 NumPy array。
+    n_in: 作为输入值(X)的滞后组的数量。
+    n_out: 作为输出值(y)的观察组的数量。
+    dropnan: Boolean 值，确定是否将包含 NaN 的行移除。
+    返回值:
+    经过转换的用于监督学习的 Pandas DataFrame 序列。
+    """
+    n_vars = 1 if type(data) is list else data.shape[1]
+    df = DataFrame(data)
+    cols, names = list(), list()
+    # 输入序列 (t-n, ... t-1)
+    for i in range(n_in, 0, -1):
+    cols.append(df.shift(i))
+    names += [('var%d(t-%d)' % (j+1, i)) for j in range(n_vars)]
+    # 预测序列 (t, t+1, ... t+n)
+    for i in range(0, n_out):
+    cols.append(df.shift(-i))
+    if i == 0:
+      names += [('var%d(t)' % (j+1)) for j in range(n_vars)]
+    else:
+      names += [('var%d(t+%d)' % (j+1, i)) for j in range(n_vars)]
+    # 将所有列拼合
+    agg = concat(cols, axis=1)
+    agg.columns = names
+    # drop 掉包含 NaN 的行
+    if dropnan:
+    agg.dropna(inplace=True)
+    return agg
+
+
+    values = [x for x in range(10)]
+    data = series_to_supervised(values, 3)
+    print(data)
+
+再次运行样例，输出重新构造的序列，可以看到输入序列准确无误地从左至右裴烈，作为预测项的输入值在最右边。
+
+    var1(t-3)  var1(t-2)  var1(t-1)  var1(t)
+    3        0.0        1.0        2.0        3
+    4        1.0        2.0        3.0        4
+    5        2.0        3.0        4.0        5
+    6        3.0        4.0        5.0        6
+    7        4.0        5.0        6.0        7
+    8        5.0        6.0        7.0        8
+    9        6.0        7.0        8.0        9
+
