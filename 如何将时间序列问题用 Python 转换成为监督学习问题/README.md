@@ -143,3 +143,76 @@ shift 操作能也能接受负整数作为参数。如果你这么做，它会�
 
 
 
+### series_to_supervised() 函数
+
+我们可以使用 Pandas 的 shift() 函数，在给定希望得到的输入值、输出值序列长度后自动生成时间序列问题的新格式数据。
+
+这是个很有用的工具。我们可以通过机器学习算法研究各种时间序列问题格式，探究哪种格式能够得到效果更佳的模型。
+
+在本节中，我们将创建一个新的 Python 函数，名为 series_to_supervised()。它可以将多元时间序列问题与一元时间序列问题转换为监督学习数据集的格式。
+
+这个函数接收以下 4 个参数：
+
+data：必填，待转换的序列，数据类型为 list 或 2 维 NumPy array。
+
+n_in： 可选，滞后组（作为输入值 X）的数量。范围可以在 [1..len(data)] 之间，默认值为 1。
+
+n_out： 可选，观察组（作为输出值 y）的数量。范围可以在  [0..len(data)-1] 之间，默认值为 1。
+
+dropnan：选填，决定是否抛去包含 NaN 的行。类型为 Boolean，默认值为 True。
+
+函数将会返回一个值：
+
+return：返回监督学习格式的数据集，数据类型为 Pandas DataFrame。
+
+新数据集 DataFrame 格式，每一列都由原变量名称和移动步数命名，让你可以根据给定的一元或多元时间序列问题设计出各种移动步数的序列。
+
+在 DataFrame 返回时，你可以对其行进行分割，根据你的需要决定如何将返回的 DataFrame 分成 X 和 y 两部分。
+
+这个函数的参数都设置了默认值，因此可以直接调用它处理你的数据，这种默认情况它将会返回一个 t-1 作为 X，t 作为 y 的 DataFrame。
+这个函数已确定同时兼容 Python2 和 Python3。
+
+下面为完整代码，并写好了注释：
+
+
+    from pandas import DataFrame
+    from pandas import concat
+
+    def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
+    """
+    函数用途：将时间序列转化为监督学习数据集。
+    参数说明：
+    data: 观察值序列，数据类型可以是 list 或者 NumPy array。
+    n_in: 作为输入值(X)的滞后组的数量。
+    n_out: 作为输出值(y)的观察组的数量。
+    dropnan: Boolean 值，确定是否将包含 NaN 的行移除。
+    返回值:
+    经过转换的用于监督学习的 Pandas DataFrame 序列。
+    """
+    n_vars = 1 if type(data) is list else data.shape[1]
+    df = DataFrame(data)
+    cols, names = list(), list()
+    # 输入序列 (t-n, ... t-1)
+    for i in range(n_in, 0, -1):
+    cols.append(df.shift(i))
+    names += [('var%d(t-%d)' % (j+1, i)) for j in range(n_vars)]
+    # 预测序列 (t, t+1, ... t+n)
+    for i in range(0, n_out):
+    cols.append(df.shift(-i))
+    if i == 0:
+      names += [('var%d(t)' % (j+1)) for j in range(n_vars)]
+    else:
+      names += [('var%d(t+%d)' % (j+1, i)) for j in range(n_vars)]
+    # 将所有列拼合
+    agg = concat(cols, axis=1)
+    agg.columns = names
+    # drop 掉包含 NaN 的行
+    if dropnan:
+    agg.dropna(inplace=True)
+    return agg
+
+### 单步或单变量预测
+
+在时间序列预测问题中通常使用滞后时间（例如 t-1）作为输入变量来预测当前时间（t）。
+
+这种问题被称为单步预测。
