@@ -32,6 +32,24 @@ NLP 是一个很宽泛的领域，它包括了文本分类、实体识别、机�
 - 与 NLTK 和 CoreNLP 对比
 
 ### spaCy 简介及安装方法
+
 #### 简介
 spaCy 由 cython（Python 的 C 语言拓展，旨在让 python 程序达到如同 C 程序一样的性能）编写，因此它的运行效率非常高。spaCy 提供了一系列简洁的 API 方便用户使用，并基于已经训练好的机器学习与深度学习模型实现底层。
 
+#### 安装
+
+spaCy 及其数据和模型可以通过 pip 和安装工具轻松地完成安装。使用下面的命令在电脑中安装 spaCy：
+
+    sudo pip install spacy
+
+如果你使用的是 Python3，请用 “pip3” 代替 “pip”。
+
+或者你也可以在 这儿 下载源码，解压后运行下面的命令安装：
+
+    python setup.py install
+
+在安装好 spacy 之后，请运行下面的命令以下载所有的数据集和模型：
+
+    python -m spacy.en.download all
+
+一切就绪，现在你可以自由探索、使用 spacy 了。
