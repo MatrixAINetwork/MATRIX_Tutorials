@@ -386,3 +386,15 @@ return：返回监督学习格式的数据集，数据类型为 Pandas DataFrame
     values = [x for x in range(10)]
     data = series_to_supervised(values, 2, 2)
     print(data)
+运行样例，可以看到将（t-n）作为输入变量、将（t+n）作为输出变量时，与将当前观察组（t）作为输出的不同之处。
+
+    var1(t-2)  var1(t-1)  var1(t)  var1(t+1)
+    2        0.0        1.0        2        3.0
+    3        1.0        2.0        3        4.0
+    4        2.0        3.0        4        5.0
+    5        3.0        4.0        5        6.0
+    6        4.0        5.0        6        7.0
+    7        5.0        6.0        7        8.0
+    8        6.0        7.0        8        9.0
+
+
