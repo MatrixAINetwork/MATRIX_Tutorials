@@ -398,3 +398,121 @@ return：返回监督学习格式的数据集，数据类型为 Pandas DataFrame
     8        6.0        7.0        8        9.0
 
 
+
+### 多元预测
+
+还有一种重要的时间序列类型，叫做多元时间序列。
+
+这种情况我们会将多个不同的指标作为观察组，并预测它们中的一个或多个的值。
+
+例如，我们有两组时间序列观察组 obs1 和 obs2，希望预测它们或它们中的一者。
+
+我们同样可以调用 series_to_supervised()。例如：
+
+
+    from pandas import DataFrame
+    from pandas import concat
+
+    def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
+    """
+    函数用途：将时间序列转化为监督学习数据集。
+    参数说明：
+    data: 观察值序列，数据类型可以是 list 或者 NumPy array。
+    n_in: 作为输入值(X)的滞后组的数量。
+    n_out: 作为输出值(y)的观察组的数量。
+    dropnan: Boolean 值，确定是否将包含 NaN 的行移除。
+    返回值:
+    经过转换的用于监督学习的 Pandas DataFrame 序列。
+    """
+    n_vars = 1 if type(data) is list else data.shape[1]
+    df = DataFrame(data)
+    cols, names = list(), list()
+    # 输入序列 (t-n, ... t-1)
+    for i in range(n_in, 0, -1):
+    cols.append(df.shift(i))
+    names += [('var%d(t-%d)' % (j+1, i)) for j in range(n_vars)]
+    # 预测序列 (t, t+1, ... t+n)
+    for i in range(0, n_out):
+    cols.append(df.shift(-i))
+    if i == 0:
+      names += [('var%d(t)' % (j+1)) for j in range(n_vars)]
+    else:
+      names += [('var%d(t+%d)' % (j+1, i)) for j in range(n_vars)]
+    # 将所有列拼合
+    agg = concat(cols, axis=1)
+    agg.columns = names
+    # drop 掉包含 NaN 的行
+    if dropnan:
+    agg.dropna(inplace=True)
+    return agg
+
+
+    raw = DataFrame()
+    raw['ob1'] = [x for x in range(10)]
+    raw['ob2'] = [x for x in range(50, 60)]
+    values = raw.values
+    data = series_to_supervised(values)
+    print(data)
+
+运行样例，将会得到经过重新构造后的数据。数据显示了分别处于同一个时间的两组变量作为输入组以及输出组。
+
+与之前一样，根据问题的需要，可以将列分入 X 和 y 两个子集中，需要注意的是如果放入了 var1 做为观察组，那就要放入 var2 作为待预测组。
+
+    var1(t-1)  var2(t-1)  var1(t)  var2(t)
+    1        0.0       50.0        1       51
+    2        1.0       51.0        2       52
+    3        2.0       52.0        3       53
+    4        3.0       53.0        4       54
+    5        4.0       54.0        5       55
+    6        5.0       55.0        6       56
+    7        6.0       56.0        7       57
+    8        7.0       57.0        8       58
+    9        8.0       58.0        9       59
+
+可以看到，通过上面这样给定输入序列和输出序列的数量生成的新的序列，可以帮助你轻松地完成多元时间序列的预测。
+
+例如，下面将把 1 作为输入列数量，将 2 作为输出列（预测列）数量，重新构造预测序列：
+
+    from pandas import DataFrame
+    from pandas import concat
+
+    def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
+    """
+    函数用途：将时间序列转化为监督学习数据集。
+    参数说明：
+    data: 观察值序列，数据类型可以是 list 或者 NumPy array。
+    n_in: 作为输入值(X)的滞后组的数量。
+    n_out: 作为输出值(y)的观察组的数量。
+    dropnan: Boolean 值，确定是否将包含 NaN 的行移除。
+    返回值:
+    经过转换的用于监督学习的 Pandas DataFrame 序列。
+    """
+    n_vars = 1 if type(data) is list else data.shape[1]
+    df = DataFrame(data)
+    cols, names = list(), list()
+    # 输入序列 (t-n, ... t-1)
+    for i in range(n_in, 0, -1):
+    cols.append(df.shift(i))
+    names += [('var%d(t-%d)' % (j+1, i)) for j in range(n_vars)]
+    # 预测序列 (t, t+1, ... t+n)
+    for i in range(0, n_out):
+    cols.append(df.shift(-i))
+    if i == 0:
+      names += [('var%d(t)' % (j+1)) for j in range(n_vars)]
+    else:
+      names += [('var%d(t+%d)' % (j+1, i)) for j in range(n_vars)]
+    # 将所有列拼合
+    agg = concat(cols, axis=1)
+    agg.columns = names
+    # drop 掉包含 NaN 的行
+    if dropnan:
+    agg.dropna(inplace=True)
+    return agg
+
+    raw = DataFrame()
+    raw['ob1'] = [x for x in range(10)]
+    raw['ob2'] = [x for x in range(50, 60)]
+    values = raw.values
+    data = series_to_supervised(values, 1, 2)
+    print(data)
+
