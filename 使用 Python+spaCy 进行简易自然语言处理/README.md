@@ -53,3 +53,27 @@ spaCy 及其数据和模型可以通过 pip 和安装工具轻松地完成安装
     python -m spacy.en.download all
 
 一切就绪，现在你可以自由探索、使用 spacy 了。
+
+
+#### spaCy 的管道（Pipeline）与属性（Properties）
+
+spaCy 的使用，以及其各种属性，是通过创建管道实现的。在加载模型的时候，spaCy 会将管道创建好。在 spaCy 包中，提供了各种各样的模块，这些模块中包含了各种关于词汇、训练向量、语法和实体等用于语言处理的信息。
+下面，我们会加载默认的模块（english-core-web 模块）
+
+    import spacy
+    nlp = spacy.load(“en”)
+
+
+“nlp” 对象用于创建 document、获得 linguistic annotation 及其它的 nlp 属性。首先我们要创建一个 document，将文本数据加载进管道中。我使用了来自猫途鹰网的旅店评论数据。这个数据文件可以在这儿下载。
+
+    document = unicode(open(filename).read().decode('utf8'))
+    document = nlp(document)
+
+这个 document 现在是 spacy.english 模型的一个 class，并关联上了许多的属性。可以使用下面的命令列出所有 document（或 token）的属性：
+
+
+    dir(document)
+    >> [ 'doc', 'ents', … 'mem']
+
+
+它会输出 document 中各种各样的属性，例如：token、token 的 index、词性标注、实体、向量、情感、单词等。下面让我们会对其中的一些属性进行一番探究。
