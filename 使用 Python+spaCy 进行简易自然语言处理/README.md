@@ -141,3 +141,19 @@ spaCy 的使用，以及其各种属性，是通过创建管道实现的。在�
     Counter(cleaned_list) .most_common(5)
     >> [( u'hotel', 683), (u'room', 652), (u'great', 300),  (u'sheraton', 285), (u'location', 271)]
 
+
+##### 2.3 实体识别
+
+spaCy 拥有一个快速实体识别模型，这个实体识别模型能够从 document 中找出实体短语。它能识别各种类型的实体，例如人名、位置、机构、日期、数字等。你可以通过“.ents”属性来读取这些实体。
+
+下面让我们来获取我们 document 中所有类型的命名实体：
+
+
+    labels = set([w.label_ for w in document.ents])
+    for label in labels:
+    entities = [cleanup(e.string, lower=False) for e in document.ents if label==e.label_]
+    entities = list(set(entities))
+    print label,entities
+
+
+
