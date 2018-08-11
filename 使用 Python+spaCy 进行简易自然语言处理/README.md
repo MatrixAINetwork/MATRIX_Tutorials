@@ -204,3 +204,19 @@ spaCy 拥有一个快速实体识别模型，这个实体识别模型能够从 d
     pos_words(document, 'hotel', “ADJ”)
     >> [(u'other', 20), (u'great', 10), (u'good', 7), (u'better', 6), (u'nice', 6), (u'different', 5), (u'many', 5), (u'best', 4), (u'my', 4), (u'wonderful', 3)]
 
+
+##### 2.5 名词短语（NP）
+
+依存树也可以用来生成名词短语：
+
+
+     # 生成名词短语
+    doc = nlp(u'I love data science on analytics vidhya')
+    for np in doc.noun_chunks:
+    print np.text, np.root.dep_, np.root.head.text
+    >> I nsubj love
+     data science dobj love
+     analytics pobj on
+
+
+
