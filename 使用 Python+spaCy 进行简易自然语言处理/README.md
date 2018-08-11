@@ -98,3 +98,17 @@ spaCy 的使用，以及其各种属性，是通过创建管道实现的。在�
     Everything was clean, the view was wonderful and it is very well located (the Prudential Center makes shopping and eating easy and the T is nearby for jaunts out and about the city).]
 
 
+##### 2.2 词性标注(POS Tag)
+词性标注即标注语法正确的句子中的词语的词性。这些标注可以用于信息过滤、统计模型，或者基于某些规则进行文本解析。
+
+来看看我们的 document 中所有的词性标注：
+
+    # 获得所有标注
+    all_tags = {w.pos: w.pos_ for w in document}
+    >> {97:  u'SYM', 98: u'VERB', 99: u'X', 101: u'SPACE', 82: u'ADJ', 83: u'ADP', 84: u'ADV', 87: u'CCONJ', 88: u'DET', 89: u'INTJ', 90: u'NOUN', 91: u'NUM', 92: u'PART', 93: u'PRON', 94: u'PROPN', 95: u'PUNCT'}
+
+    # document 中第一个句子的词性标注
+    for word in list(document.sents)[0]:  
+    print word, word.tag_
+    >> ( Nice, u'JJ') (place, u'NN') (Better, u'NNP') (than, u'IN') (some, u'DT') (reviews, u'NNS') (give, u'VBP') (it, u'PRP') (creit, u'NN') (for, u'IN') (., u'.')
+
