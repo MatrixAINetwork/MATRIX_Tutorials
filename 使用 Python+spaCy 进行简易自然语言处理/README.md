@@ -156,4 +156,51 @@ spaCy 拥有一个快速实体识别模型，这个实体识别模型能够从 d
     print label,entities
 
 
+##### 2.4 依存句法分析
+
+    spaCy 最强大的功能之一就是它可以通过调用轻量级的 API 来实现又快又准确的依存分析。这个分析器也可以用于句子边界检测以及区分短语块。依存关系可以通过“.children”、“.root”、“.ancestor”等属性读取。
+
+
+    # 取出所有句中包含“hotel”单词的评论
+    hotel = [sent for sent in document.sents if 'hotel' in sent.string.lower()]
+
+    # 创建依存树
+    sentence = hotel[2] for word in sentence:
+    print word, ': ', str(list(word.children))
+    >> A :  []  cab :  [A, from]
+    from :  [airport, to]
+    the :  []
+    airport :  [the]
+    to :  [hotel]
+    the :  [] hotel :  
+    [the] can :  []
+    be :  [cab, can, cheaper, .]
+    cheaper :  [than] than :  
+    [shuttles]
+    the :  []
+    shuttles :  [the, depending]
+    depending :  [time] what :  []
+    time :  [what, of] of :  [day]
+    the :  [] day :  
+    [the, go] you :  
+    []
+    go :  [you]
+    . :  []
+
+解析所有居中包含“hotel”单词的句子的依存关系，并检查对于 hotel 人们用了哪些形容词。我创建了一个自定义函数，用于分析依存关系并进行相关的词性标注。
+
+
+    # 检查修饰某个单词的所有形容词
+    def pos_words (sentence, token, ptag):
+    sentences = [sent for sent in sentence.sents if token in sent.string]     
+    pwrds = []
+    for sent in sentences:
+        for word in sent:
+            if character in word.string:
+                   pwrds.extend([child.string.strip() for child in word.children
+                                                      if child.pos_ == ptag] )
+    return Counter(pwrds).most_common(10)
+
+    pos_words(document, 'hotel', “ADJ”)
+    >> [(u'other', 20), (u'great', 10), (u'good', 7), (u'better', 6), (u'nice', 6), (u'different', 5), (u'many', 5), (u'best', 4), (u'my', 4), (u'wonderful', 3)]
 
