@@ -77,3 +77,24 @@ spaCy 的使用，以及其各种属性，是通过创建管道实现的。在�
 
 
 它会输出 document 中各种各样的属性，例如：token、token 的 index、词性标注、实体、向量、情感、单词等。下面让我们会对其中的一些属性进行一番探究。
+
+##### 2.1 Tokenization
+
+    spaCy 的 document 可以在 tokenized 过程中被分割成单句，这些单句还可以进一步分割成单词。你可以通过遍历文档来读取这些单词：
+
+    # document 的首个单词
+    document[0]
+    >> Nice
+
+    # document 的最后一个单词  
+    document[len(document)-5]
+    >> boston
+
+    # 列出 document 中的句子
+    list(document.sents)
+    >> [ Nice place Better than some reviews give it credit for.,
+    Overall, the rooms were a bit small but nice.,
+    ...
+    Everything was clean, the view was wonderful and it is very well located (the Prudential Center makes shopping and eating easy and the T is nearby for jaunts out and about the city).]
+
+
