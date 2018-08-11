@@ -112,3 +112,32 @@ spaCy 的使用，以及其各种属性，是通过创建管道实现的。在�
     print word, word.tag_
     >> ( Nice, u'JJ') (place, u'NN') (Better, u'NNP') (than, u'IN') (some, u'DT') (reviews, u'NNS') (give, u'VBP') (it, u'PRP') (creit, u'NN') (for, u'IN') (., u'.')
 
+
+来看一看 document 中的最常用词汇。我已经事先写好了预处理和文本数据清洗的函数。
+
+
+    #一些参数定义
+    noisy_pos_tags = [“PROP”]
+    min_token_length = 2
+
+    #检查 token 是不是噪音的函数
+    def isNoise(token):     
+    is_noise = False
+    if token.pos_ in noisy_pos_tags:
+        is_noise = True
+    elif token.is_stop == True:
+        is_noise = True
+    elif len(token.string) <= min_token_length:
+        is_noise = True
+    return is_noise
+    def cleanup(token, lower = True):
+    if lower:
+       token = token.lower()
+    return token.strip()
+
+    # 评论中最常用的单词
+    from collections import Counter
+    cleaned_list = [cleanup(word.string) for word in document if not isNoise(word)]
+    Counter(cleaned_list) .most_common(5)
+    >> [( u'hotel', 683), (u'room', 652), (u'great', 300),  (u'sheraton', 285), (u'location', 271)]
+
