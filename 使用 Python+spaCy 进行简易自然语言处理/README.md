@@ -219,4 +219,31 @@ spaCy 拥有一个快速实体识别模型，这个实体识别模型能够从 d
      analytics pobj on
 
 
+#### 3. 集成词向量
+
+spaCy 提供了内置整合的向量值算法，这些向量值可以反映词中的真正表达信息。它使用 GloVe 来生成向量。GloVe 是一种用于获取表示单词的向量的无监督学习算法。
+
+让我们创建一些词向量，然后对其做一些有趣的操作吧：
+
+    from numpy import dot
+    from numpy.linalg import norm
+    from spacy.en import English
+    parser = English()
+
+    # 生成“apple”的词向量 
+    apple = parser.vocab[u'apple']
+
+    # 余弦相似性计算函数
+    cosine = lambda v1, v2: dot(v1, v2) / (norm(v1) * norm(v2))
+    others = list({w for w in parser.vocab if w.has_vector and w.orth_.islower() and w.lower_ != unicode("apple")})
+
+    # 根据相似性值进行排序
+    others.sort(key=lambda w: cosine(w.vector, apple.vector))
+    others.reverse()
+
+
+    print "top most similar words to apple:"
+    for word in others[:10]:
+    print word.orth_
+    >> apples iphone f ruit juice cherry lemon banana pie mac orange
 
