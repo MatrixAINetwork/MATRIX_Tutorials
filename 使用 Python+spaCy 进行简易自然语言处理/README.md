@@ -346,3 +346,11 @@ Spacy 是一个非常强大且具备工业级能力的 NLP 包，它能满足大
 ##### 速度：主要功能（Tokenizer、Tagging、Parsing）速度
 
 ![](https://i.imgur.com/SXM5998.png)
+
+
+#### 结束语
+
+本文讨论了 spaCy —— 这个基于 python，完全用于实现 NLP 的库。我们通过许多用例展示了 spaCy 的可用性、速度及准确性。最后我们还将其余其它几个著名的 NLP 库 —— CoreNLP 与 NLTK 进行了对比。
+
+
+如果你能真正理解这篇文章要表达的内容，那你一定可以去实现各种有挑战的文本数据与 NLP 问题。
