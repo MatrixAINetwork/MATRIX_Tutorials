@@ -333,3 +333,16 @@ spaCy 提供了内置整合的向量值算法，这些向量值可以反映词�
       ("I can't believe I'm doing this.", 'neg') neg
       Accuracy: 1.0
 
+#### 5. 和其它库的对比
+
+Spacy 是一个非常强大且具备工业级能力的 NLP 包，它能满足大多数 NLP 任务的需求。可能你会思考：为什么会这样呢？
+
+让我们把 Spacy 和另外两个 python 中有名的实现 NLP 的工具 —— CoreNLP 和 NLTK 进行对比吧！
+
+##### 支持功能表
+
+![](https://i.imgur.com/8WDx4Ks.png)
+
+##### 速度：主要功能（Tokenizer、Tagging、Parsing）速度
+
+![](https://i.imgur.com/SXM5998.png)
