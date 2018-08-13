@@ -280,3 +280,56 @@ spaCy 提供了内置整合的向量值算法，这些向量值可以反映词�
     return text.strip().lower()
 
 
+现在让我们使用 spaCy 的解析器和一些基本的数据清洗函数来创建一个自定义的 tokenizer 函数。值得一提的是，你可以用词向量来代替文本特征（使用深度学习模型效果会有较大的提升）
+
+
+    #创建 spaCy tokenizer，解析句子并生成 token
+    #也可以用词向量函数来代替它
+    def spacy_tokenizer(sentence):
+    tokens = parser(sentence)
+    tokens = [tok.lemma_.lower().strip() if tok.lemma_ != "-PRON-" else tok.lower_ for tok in tokens]
+    tokens = [tok for tok in tokens if (tok not in stopwords and tok not in punctuations)]     return tokens
+
+    #创建 vectorizer 对象，生成特征向量，以此可以自定义 spaCy 的 tokenizer
+    vectorizer = CountVectorizer(tokenizer = spacy_tokenizer, ngram_range=(1,1)) classifier = LinearSVC()
+
+现在可以创建管道，加载数据，然后运行分类模型了。
+
+    # 创建管道，进行文本清洗、tokenize、向量化、分类操作
+    pipe = Pipeline([("cleaner", predictors()),
+                 ('vectorizer', vectorizer),
+                 ('classifier', classifier)])
+
+    # Load sample data
+    train = [('I love this sandwich.', 'pos'),          
+         ('this is an amazing place!', 'pos'),
+         ('I feel very good about these beers.', 'pos'),
+         ('this is my best work.', 'pos'),
+         ("what an awesome view", 'pos'),
+         ('I do not like this restaurant', 'neg'),
+         ('I am tired of this stuff.', 'neg'),
+         ("I can't deal with this", 'neg'),
+         ('he is my sworn enemy!', 'neg'),          
+         ('my boss is horrible.', 'neg')]
+    test =   [('the beer was good.', 'pos'),     
+         ('I do not enjoy my job', 'neg'),
+         ("I ain't feelin dandy today.", 'neg'),
+         ("I feel amazing!", 'pos'),
+         ('Gary is a good friend of mine.', 'pos'),
+         ("I can't believe I'm doing this.", 'neg')]
+
+    # 创建模型并计算准确率
+    pipe.fit([x[0] for x in train], [x[1] for x in train])
+    pred_data = pipe.predict([x[0] for x in test])
+    for (sample, pred) in zip(test, pred_data):
+    print sample, pred
+    print "Accuracy:", accuracy_score([x[1] for x in test], pred_data)
+
+    >>    ('the beer was good.', 'pos') pos
+      ('I do not enjoy my job', 'neg') neg
+      ("I ain't feelin dandy today.", 'neg') neg
+      ('I feel amazing!', 'pos') pos
+      ('Gary is a good friend of mine.', 'pos') pos
+      ("I can't believe I'm doing this.", 'neg') neg
+      Accuracy: 1.0
+
