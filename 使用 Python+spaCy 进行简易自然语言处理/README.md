@@ -247,3 +247,36 @@ spaCy 提供了内置整合的向量值算法，这些向量值可以反映词�
     print word.orth_
     >> apples iphone f ruit juice cherry lemon banana pie mac orange
 
+
+
+#### 4. 使用 spaCy 对文本进行机器学习
+
+    将 spaCy 集成进机器学习模型是非常简单、直接的。让我们使用 sklearn 做一个自定义的文本分类器。我们将使用 cleaner、tokenizer、vectorizer、classifier 组件来创建一个 sklearn 管道。其中的 tokenizer 和 vectorizer 会使用我们用 spaCy 自定义的模块构建。
+
+    from sklearn.feature_extraction.stop_words import ENGLISH_STOP_WORDS as stopwords
+    from sklearn.feature_extraction.text import CountVectorizer
+    from sklearn.metrics import accuracy_score
+    from sklearn.base import TransformerMixin
+    from sklearn.pipeline import Pipeline
+    from sklearn.svm import LinearSVC
+
+    import string
+    punctuations = string.punctuation
+
+    from spacy.en import English
+    parser = English()
+
+    # 使用 spaCy 自定义 transformer
+    class predictors(TransformerMixin):
+    def transform(self, X, **transform_params):
+        return [clean_text(text) for text in X]
+    def fit(self, X, y=None, **fit_params):
+        return self
+    def get_params(self, deep=True):
+        return {}
+
+    # 进行文本清洗的实用的基本函数
+    def clean_text(text):     
+    return text.strip().lower()
+
+
