@@ -105,3 +105,59 @@ Jupyter Notebook 支持用户界面主题。以下命令将主题设置为 Chest
 
 启动 Python 笔记本后，将以下代码粘贴到单元格中，它将通过 Spark 查询数据。调整查询以使用您在安装中创建的数据集。
 
+    cab_types = sqlContext.sql("""
+    SELECT cab_type, COUNT(*)
+    FROM trips_orc 
+    GROUP BY cab_type
+    """)
+
+    cab_types.take(2)
+
+这就是上面查询的输出结果。只返回了一条记录，包括两个字段。
+
+
+    [Row(cab_type=u'yellow', count(1)=20000000)]
+
+
+#### 通过 Jupyter Notebook 查询 Presto
+
+在前面用来查询 Spark 的笔记本中，也可以查询 Presto。某些 Presto 查询的性能可能超过 Spark，趁手的是这两者可以在同一个笔记本中进行切换。在下面的示例中，我使用 Dropbox 的 PyHive 库来查询 Presto。
+
+    from pyhive import presto
+
+    cursor = presto.connect('0.0.0.0').cursor()
+    cursor.execute('SELECT * FROM trips_orc LIMIT 10')
+    cursor.fetchall()
+
+
+这是上述查询的部分输出。
+
+    [(451221840,
+    u'CMT',
+    u'2011-08-23 21:03:34.000',
+    u'2011-08-23 21:21:49.000',
+    u'N',
+    1,
+    -74.004655,
+    40.742162,
+    -73.973489,
+    40.792922,
+    ...
+
+
+#### 启动 Airflow
+
+下面将创建一个 ~/airflow 文件夹，设置一个用于存储在网页界面上设置的 Airflow 的状态和配置集的 SQLite 3 数据库，升级配置模式并为 Airflow 将要运行的 Python 作业代码创建一个文件夹。
+
+    $ cd ~
+    $ airflow initdb
+    $ airflow upgradedb
+    $ mkdir -p ~/airflow/dags
+
+默认情况下，Presto、Spark 和 Airflow 的网页界面都使用 TCP 8080 端口。如果您先启动了 Spark，Presto 就将无法启动。但如果您是在 Presto 之后启动 Spark，那么 Presto 将在 8080 上启动，而 Spark Master 服务端则会使用 8081，如果仍被占用，会继续尝试更高端口，直到它找到一个空闲的端口。之后， Spark 将为 Spark Worker 的网页界面选择更高的端口号。这种重叠通常不是问题，因为在生产设置中这些服务通常存在于不同的机器上。
+
+
+因为此安装中使用了 8080 - 8082 的 TCP 端口，我将在端口 8083 上启动 Airflow 的网页界面
+
+
+    $ airflow webserver --port=8083 &
