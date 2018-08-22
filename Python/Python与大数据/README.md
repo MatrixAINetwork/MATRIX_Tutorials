@@ -365,3 +365,10 @@ Airflow 的 Celery 代理和作业结果的存储都默认使用 MySQL。这里�
 
     if __name__ == "__main__":
     dag.cli()
+
+使用该代码打开 Airflow 的网页界面并将主页底部的 “weather” DAG 旁边的开关切换为 “on”。
+
+调度程序将创建一个作业列表交给 workers 去执行。以下内容将启动 Airflow 的调度程序服务和一个将完成所有预定作业的 worker。
+
+    $ airflow scheduler &
+    $ airflow worker &
