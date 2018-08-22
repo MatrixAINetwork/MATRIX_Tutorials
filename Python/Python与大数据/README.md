@@ -61,3 +61,47 @@ Airflow 将依靠 RabbitMQ 的帮助来跟踪其作业。下面安装 Erlang，�
 
 
 
+
+#### 配置 Jupyter Notebook
+
+为 Jupyter 创建一个文件夹来存储其配置，然后为服务器设置密码。如果不设置密码，您就会获得一个冗长的 URL，其中包含用于访问 Jupyter 网页界面的密钥。每次启动 Jupyter Notebook 时，密钥都会更新。
+
+    $ mkdir -p ~/.jupyter/
+    $ jupyter notebook password
+
+
+Jupyter Notebook 支持用户界面主题。以下命令将主题设置为 Chesterish。
+
+    $ jt -t chesterish
+
+#### 通过 Jupyter Notebook 查询 Spark
+
+首先确保您运行着 Hive 的 Metastore、Spark 的 Master ＆ Slaves 服务，以及 Presto 的服务端。以下是启动这些服务的命令。
+
+    $ hive --service metastore &
+    $ sudo /opt/presto/bin/launcher start
+    $ sudo /opt/spark/sbin/start-master.sh
+    $ sudo /opt/spark/sbin/start-slaves.sh
+
+下面将启动 Jupyter Notebook，以便您可以与 PySpark 进行交互，PySpark 是 Spark 的基于 Python 的编程接口。
+
+    $ PYSPARK_DRIVER_PYTHON=ipython \
+    PYSPARK_DRIVER_PYTHON_OPTS="notebook
+        --no-browser
+        --ip=0.0.0.0
+        --NotebookApp.iopub_data_rate_limit=100000000" \
+    pyspark \
+     --master spark://ubuntu:7077
+
+
+请注意，上面的 master 的 URL 以 ubuntu 为主机名。此主机名是 Spark Master 服务端绑定的主机名。如果无法连接到 Spark，请检查 Spark Master 服务端的日志，查找它已选择绑定的主机名，因为它不接受寻址其他主机名的连接。这可能会令人困惑，因为您通常会期望像 localhost 这样的主机名无论如何都能正常工作。
+
+运行 Jupyter Notebook 服务后，用下面命令打开网页界面。
+
+    $ open http://localhost:8888/
+
+
+系统将提示您输入为 Jupyter Notebook 设置的密码。在右上角输入后，您可以从下拉列表中创建新的笔记本。我们感兴趣的两种笔记本类型是 Python 和终端。终端笔记本使用您启动 Jupyter Notebook 的 UNIX 帐户为您提供 shell 访问权限。而我将使用的是 Python 笔记本。
+
+启动 Python 笔记本后，将以下代码粘贴到单元格中，它将通过 Spark 查询数据。调整查询以使用您在安装中创建的数据集。
+
