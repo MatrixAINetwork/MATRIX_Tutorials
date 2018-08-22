@@ -209,3 +209,159 @@ Airflow 的 Celery 代理和作业结果的存储都默认使用 MySQL。这里�
 
     SELECT count(*)
     FROM trips_orc;
+
+#### 下载天气数据集
+
+可以将 Airflow DAG 视为定时执行的作业。在下面的示例中，我将在 GitHub 上获取 FiveThirtyEight 数据仓库提供的天气数据，将其导入 HDFS，将其从 CSV 转换为 ORC 并将其从 Presto 导出为 Microsoft Excel 格式。
+
+以下内容将 FiveThirtyEight 的数据存储克隆到名为 data 的本地文件夹中。
+
+    $ git clone \
+    https://github.com/fivethirtyeight/data.git \
+    ~/data
+
+然后我将启动 Hive 并创建两个表。一个存数据集的 CSV 格式，另一个存数据集的 Presto 和 Spark 友好的 ORC 格式。
+
+    $ hive
+ 
+    CREATE EXTERNAL TABLE weather_csv (
+    date_                 DATE,
+    actual_mean_temp      SMALLINT,
+    actual_min_temp       SMALLINT,
+    actual_max_temp       SMALLINT,
+    average_min_temp      SMALLINT,
+    average_max_temp      SMALLINT,
+    record_min_temp       SMALLINT,
+    record_max_temp       SMALLINT,
+    record_min_temp_year  INT,
+    record_max_temp_year  INT,
+    actual_precipitation  DECIMAL(18,14),
+    average_precipitation DECIMAL(18,14),
+    record_precipitation  DECIMAL(18,14)
+    ) ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+    LOCATION '/weather_csv/';
+
+    CREATE EXTERNAL TABLE weather_orc (
+    date_                 DATE,
+    actual_mean_temp      SMALLINT,
+    actual_min_temp       SMALLINT,
+    actual_max_temp       SMALLINT,
+    average_min_temp      SMALLINT,
+    average_max_temp      SMALLINT,
+    record_min_temp       SMALLINT,
+    record_max_temp       SMALLINT,
+    record_min_temp_year  INT,
+    record_max_temp_year  INT,
+    actual_precipitation  DOUBLE,
+    average_precipitation DOUBLE,
+    record_precipitation  DOUBLE
+    ) STORED AS orc
+    LOCATION '/weather_orc/';
+
+#### 创建 Airflow DAG
+
+下面的 Python 代码是 Airflow 作业（也称为DAG）。每隔 30 分钟，它将执行以下操作。
+
+清除 HDFS上 /weather_csv/ 文件夹中的任何现有数据。
+
+将 ~/data 文件夹中的 CSV 文件复制到 HDFS 上的 /weather_csv/ 文件夹中。
+
+使用 Hive 将 HDFS 上的 CSV 数据转换为 ORC 格式。
+
+使用 Presto 将 ORC 格式的数据导出为 Microsoft Excel 2013 格式。
+
+在下面的 Python 代码中有一个指向 CSV 的位置，完整路径为 /home/mark/data/us-weather-history/*.csv，请将其中的 “mark” 更换为您自己的 UNIX 用户名。
+
+    $ vi ~/airflow/dags/weather.py
+
+    from datetime import timedelta
+
+    import airflow
+    from   airflow.hooks.presto_hook         import PrestoHook
+    from   airflow.operators.bash_operator   import BashOperator
+    from   airflow.operators.python_operator import PythonOperator
+    import numpy  as np
+    import pandas as pd
+
+
+    default_args = {
+    'owner':            'airflow',
+    'depends_on_past':  False,
+    'start_date':       airflow.utils.dates.days_ago(0),
+    'email':            ['airflow@example.com'],
+    'email_on_failure': True,
+    'email_on_retry':   False,
+    'retries':          3,
+    'retry_delay':      timedelta(minutes=15),
+    }
+
+    dag = airflow.DAG('weather',
+                  default_args=default_args,
+                  description='将天气数据复制到 HDFS 并导出为 Excel',
+                  schedule_interval=timedelta(minutes=30))
+
+    cmd = "hdfs dfs -rm /weather_csv/*.csv || true"
+    remove_csvs_task = BashOperator(task_id='remove_csvs',
+                                bash_command=cmd,
+                                dag=dag)
+
+    cmd = """hdfs dfs -copyFromLocal \
+            /home/mark/data/us-weather-history/*.csv \
+            /weather_csv/"""
+    csv_to_hdfs_task = BashOperator(task_id='csv_to_hdfs',
+                                bash_command=cmd,
+                                dag=dag)
+
+    cmd = """echo \"INSERT INTO weather_orc
+                SELECT * FROM weather_csv;\" | \
+            hive"""
+    csv_to_orc_task = BashOperator(task_id='csv_to_orc',
+                               bash_command=cmd,
+                               dag=dag)
+
+
+    def presto_to_excel(**context):
+    column_names = [
+        "date",
+        "actual_mean_temp",
+        "actual_min_temp",
+        "actual_max_temp",
+        "average_min_temp",
+        "average_max_temp",
+        "record_min_temp",
+        "record_max_temp",
+        "record_min_temp_year",
+        "record_max_temp_year",
+        "actual_precipitation",
+        "average_precipitation",
+        "record_precipitation"
+    ]
+
+    sql = """SELECT *
+             FROM weather_orc
+             LIMIT 20"""
+
+    ph = PrestoHook(catalog='hive',
+                    schema='default',
+                    port=8080)
+    data = ph.get_records(sql)
+
+    df = pd.DataFrame(np.array(data).reshape(20, 13),
+                      columns=column_names)
+
+    writer = pd.ExcelWriter('weather.xlsx',
+                            engine='xlsxwriter')
+    df.to_excel(writer, sheet_name='Sheet1')
+    writer.save()
+
+    return True
+
+    presto_to_excel_task = PythonOperator(task_id='presto_to_excel',
+                                      provide_context=True,
+                                      python_callable=presto_to_excel,
+                                      dag=dag)
+
+    remove_csvs_task >> csv_to_hdfs_task >> csv_to_orc_task >> presto_to_excel_task
+
+    if __name__ == "__main__":
+    dag.cli()
