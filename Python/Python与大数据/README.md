@@ -191,3 +191,21 @@ Airflow 的 Celery 代理和作业结果的存储都默认使用 MySQL。这里�
     $ sudo rabbitmqctl set_user_tags airflow administrator
     $ sudo rabbitmqctl set_permissions -p airflow airflow ".*" ".*" ".*"
 
+
+#### 将 Airflow 连接到 Presto
+
+下面将打开 Airflow 网页界面。
+
+    $ open http://localhost:8083/
+
+
+打开 Airflow 网页界面后，单击顶部的 “Admin” 导航菜单，然后选择 “Connections”。您将看到一长串默认数据库连接。单击以编辑 Presto 连接。 Airflow 连接到 Presto 需要进行以下更改。
+
+将 schema 从 hive 改为 default。
+
+将端口从 3400 改为 8080。
+
+保存这些更改，然后单击顶部的 “Data Profiling” 导航菜单，选择 “Ad Hoc Query”。从查询框上方的下拉列表中选择 “presto_default”，您就应该可以通过 Presto 执行 SQL 代码了。下面是针对我在安装中导入的数据集运行的示例查询。
+
+    SELECT count(*)
+    FROM trips_orc;
