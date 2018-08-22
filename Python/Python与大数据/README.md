@@ -14,3 +14,25 @@ Airflow 和 Jupyter Notebook 可以很好地协同工作，您可以使用 Airfl
 
 我正在使用的机器有一个主频为 3.40 GHz 的 Intel Core i5-4670K CPU、12 GB 的 RAM 和 200 GB 的 SSD。我将使用全新安装的 Ubuntu 16.04.2 LTS，并根据我的博客文章《Hadoop 3：单节点安装指南》 中的说明构建安装单节点 Hadoop。
 
+
+#### 安装依赖项
+
+接下来将安装 Ubuntu 上的依赖项。 git 包将用于从 GitHub 获取天气数据集，其余三个包是 Python 本身、Python 包安装程序和 Python 环境隔离工具包。
+
+    $ sudo apt install \
+    git \
+    python \
+    python-pip \
+    virtualenv
+
+
+Airflow 将依靠 RabbitMQ 的帮助来跟踪其作业。下面安装 Erlang，这是编写 RabbitMQ 的语言。
+
+    $ echo "deb http://binaries.erlang-solutions.com/debian xenial contrib" | \
+    sudo tee /etc/apt/sources.list.d/erlang.list
+    $ wget -O - http://binaries.erlang-solutions.com/debian/erlang_solutions.asc | \
+    sudo apt-key add -
+    $ sudo apt update
+    $ sudo apt install esl-erlang
+
+
