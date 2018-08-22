@@ -372,3 +372,5 @@ Airflow 的 Celery 代理和作业结果的存储都默认使用 MySQL。这里�
 
     $ airflow scheduler &
     $ airflow worker &
+
+
