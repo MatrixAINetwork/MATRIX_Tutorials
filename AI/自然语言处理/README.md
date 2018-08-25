@@ -176,3 +176,93 @@ I had two ponies.
 将共指信息、解析树和命名实体信息结合在一起，我们就能够从这个文档中提取出很多信息！
 
 共指解析是我们正在进行工作的管道中的最艰难步骤之一。它甚至比语句解析还要困难。深度学习的最新进展带来更精确的方法，但它还不够完美。
+
+
+### 用 Python 来构建 NLP 管道
+
+![](https://i.imgur.com/xxqgOTm.png)
+
+
+共指解析是一项并不总要完成的可选步骤。 
+
+注意：在我们往下看之前，值得一提的是，这些都是构建传统 NLP 管道的步骤，你可以根据你的目的以及如何实现你的 NLP 库来决定是跳过还是重复某些步骤。举个例子，一些像 spaCy 这样的库，是先使用依存语法解析，得出结果后再进行语句分割。
+那么，我们该如何构建这个管道？多谢像 spaCy 这样神奇的 python 库，管道的构建工作已经完成！所有的步骤都已完成，时刻准备为你所用。
+首先，假设你已经安装了 Python 3，你可以按如下步骤来安装 spaCy：
+
+    # 安装 spaCy 
+    pip3 install -U spacy
+
+    # 下载针对 spaCy 的大型英语模型
+    python3 -m spacy download en_core_web_lg
+
+    # 安装同样大有用处的 textacy
+    pip3 install -U textacy
+
+
+在一段文档中运行 NLP 管道的代码如下所示：
+
+    import spacy
+
+    # 加载大型英语模型
+    nlp = spacy.load('en_core_web_lg')
+
+    # 我们想要检验的文本
+    text = """London is the capital and most populous city of England and 
+    the United Kingdom.  Standing on the River Thames in the south east 
+    of the island of Great Britain, London has been a major settlement 
+    for two millennia. It was founded by the Romans, who named it Londinium.
+    """
+
+    # 用 spaCy 解析文本. 在整个管道运行.
+    doc = nlp(text)
+
+    # 'doc' 现在包含了解析之后的文本。我们可以用它来做我们想做的事！
+    # 比如，这将会打印出所有被检测到的命名实体：
+    for entity in doc.ents:
+    print(f"{entity.text} ({entity.label_})")
+
+如果你运行了这条语句，你就会得到一个关于文档中被检测出的命名实体和实体类型的表：
+
+    London (GPE)  
+    England (GPE)  
+    the United Kingdom (GPE)  
+    the River Thames (FAC)  
+    Great Britain (GPE)  
+    London (GPE)  
+    two millennia (DATE)  
+    Romans (NORP)  
+    Londinium (PERSON)
+
+需要注意的是，它误将 “Londinium” 作为人名而不是地名。这可能是因为在训练数据中没有与之相似的内容，不过它做出了最好的猜测。如果你要解析具有专业术语的文本，命名实体的检测通常需要做一些微调。
+
+让我们把这实体检测的思想转变一下，来做一个数据清理器。假设你正在尝试执行新的 GDPR 隐私条款并且发现你所持有的上千个文档中都有个人身份信息，例如名字。现在你的任务就是移除文档中的所有名字。
+
+如果将上千个文档中的名字手动去除，需要花上好几年。但如果用 NLP，事情就简单了许多。这是一个移除检测到的名字的数据清洗器：
+
+
+    import spacy
+
+    # 加载大型英语 NLP 模型
+    nlp = spacy.load('en_core_web_lg')
+
+    # 如果检测到名字，就用 "REDACTED" 替换
+    def replace_name_with_placeholder(token):
+    if token.ent_iob != 0 and token.ent_type_ == "PERSON":
+        return "[REDACTED] "
+    else:
+        return token.string
+
+    # 依次解析文档中的所有实体并检测是否为名字
+    def scrub(text):
+    doc = nlp(text)
+    for ent in doc.ents:
+        ent.merge()
+    tokens = map(replace_name_with_placeholder, doc)
+    return "".join(tokens)
+
+    s = """
+    In 1950, Alan Turing published his famous article "Computing Machinery and Intelligence". In 1957, Noam Chomsky’s 
+    Syntactic Structures revolutionized Linguistics with 'universal grammar', a rule based system of syntactic structures.
+    """
+
+    print(scrub(s))
