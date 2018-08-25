@@ -313,3 +313,33 @@ I had two ponies.
      - a major settlement for two millennia.
 
 
+如果你将这段代码用于维基百科上关于伦敦的整篇文章上，而不只是这三个句子，就会得到令人印象十分深刻的结果：
+
+    Here are the things I know about London:
+
+    - the capital and most populous city of England and the United Kingdom  
+    - a major settlement for two millennia  
+    - the world's most populous city from around 1831 to 1925  
+    - beyond all comparison the largest town in England  
+    - still very compact  
+    - the world's largest city from about 1831 to 1925  
+    - the seat of the Government of the United Kingdom  
+    - vulnerable to flooding  
+    - "one of the World's Greenest Cities" with more than 40 percent green space or open water  
+    - the most populous city and metropolitan area of the European Union and the second most populous in Europe  
+    - the 19th largest city and the 18th largest metropolitan region in the world  
+    - Christian, and has a large number of churches, particularly in the City of London  
+    - also home to sizeable Muslim, Hindu, Sikh, and Jewish communities  
+    - also home to 42 Hindu temples  
+    - the world's most expensive office market for the last three years according to world property journal (2015) report  
+    - one of the pre-eminent financial centres of the world as the most important location for international finance  
+    - the world top city destination as ranked by TripAdvisor users  
+    - a major international air transport hub with the busiest city airspace in the world  
+    - the centre of the National Rail network, with 70 percent of rail journeys starting or ending in London  
+    - a major global centre of higher education teaching and research and has the largest concentration of higher education institutes in Europe  
+    - home to designers Vivienne Westwood, Galliano, Stella McCartney, Manolo Blahnik, and Jimmy Choo, among others  
+    - the setting for many works of literature  
+    - a major centre for television production, with studios including BBC Television Centre, The Fountain Studios and The London Studios  
+    - also a centre for urban music  
+    - the "greenest city" in Europe with 35,000 acres of public parks, woodlands and gardens  
+    - not the capital of England, as England does not have its own government
