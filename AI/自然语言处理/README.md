@@ -266,3 +266,50 @@ I had two ponies.
     """
 
     print(scrub(s))
+
+如果你运行了这个，就会看到它如预期般工作：
+
+    In 1950, [REDACTED] published his famous article "Computing Machinery and Intelligence". In 1957, [REDACTED]   
+    Syntactic Structures revolutionized Linguistics with 'universal grammar', a rule based system of syntactic structures.
+
+#### 信息提取
+开箱即用的 spaCy 能做的事实在是太棒了。但你也可以用 spaCy 解析的输出来作为更复杂的数据提取算法的输入。这里有一个叫做 textacy 的 python 库，它实现了多种基于 spaCy 的通用数据提取算法。这是一个良好的开端。
+
+它实现的算法之一叫做半结构化语句提取。我们用它来搜索解析树，查找主体为“伦敦”且动词是 “be” 形式的简单语句。这将会帮助我们找到有关伦敦的信息。
+
+来看看代码是怎样的：
+
+    import spacy
+    import textacy.extract
+
+    # 加载大型英语 NLP 模型
+    nlp = spacy.load('en_core_web_lg')
+
+    # 需要检测的文本
+    text = """London is the capital and most populous city of England and  the United Kingdom.  
+    Standing on the River Thames in the south east of the island of Great Britain, 
+    London has been a major settlement  for two millennia.  It was founded by the Romans, 
+    who named it Londinium.
+    """
+
+    # 用 spaCy 来解析文档
+    doc = nlp(text)
+
+    # 提取半结构化语句
+    statements = textacy.extract.semistructured_statements(doc, "London")
+
+    # 打印结果
+    print("Here are the things I know about London:")
+
+    for statement in statements:
+    subject, verb, fact = statement
+    print(f" - {fact}")
+
+打印出这些：
+
+    Here are the things I know about London:
+
+     - the capital and most populous city of England and the United Kingdom.  
+     - a major settlement for two millennia.
+
+
