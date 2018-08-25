@@ -40,3 +40,37 @@
 
 而且这正是我们将要对 NLP 所使用的策略。我们将理解英语的过程分解为多个小块，并观察每个小块是如何工作的。
 
+
+### 一步步构建 NLP 管道
+
+一段来自维基百科的文字：
+
+    伦敦是英格兰首都，也是英国的人口最稠密的城市。伦敦位于英国大不列颠岛东南部泰晤士河畔，两千年来一直是一个主要定居点。它是由罗马人建立的，把它命名为伦蒂尼恩。(London is the capital and most populous city of England and the United Kingdom. Standing on the River Thames in the south east of the island of Great Britain, London has been a major settlement for two millennia. It was founded by the Romans, who named it Londinium.)
+
+
+这段文字包含了几个有用的信息。如果电脑能够阅读这段文字并且理解伦敦是一个由罗马人建立的，位于英国的城市等等，那就最好不过了。但是要达到这个要求，我们需要先将有关书面知识的最基本的概念传授给电脑，然后不断深入。
+
+
+#### 第一步：语句分割
+在管道中所要做的第一件事就是将这段文字分割成独立的句子，由此我们可以得到：
+
+“伦敦是英国的首都，也是英格兰和整个联合王国人口最稠密的城市。(London is the capital and most populous city of England and the United Kingdom.)”
+
+“位于泰晤士河流域的伦敦，在此后两个世纪内为这一地区最重要的定居点之一。(Standing on the River Thames in the south east of the island of Great Britain, London has been a major settlement for two millennia.)”
+
+它由罗马人建立，取名为伦蒂尼恩。(It was founded by the Romans, who named it Londinium.)”
+
+我们假设每一个句子都代表一个独立的想法。那么相较于能理解整篇文章的程序而言，我们可以更加容易地写出能够理解独立语句的程序。
+创建一个语句分割模型就像使用标点符号来分割语句一样简单。但是现代 NLP 管道通常需要更加复杂的技术来解决文档排版不整齐的情况。
+
+#### 第二步：文字符号化
+现在我们已经把文档分割成了句子，我们可以一步一步地处理这些句子，让我们从文档中的第一个句子开始：
+
+    “London is the capital and most populous city of England and the United Kingdom.”
+
+下一步就是在管道中将这个句子分割成独立的词语或符号。这就称作分词。接下来看看对这个句子分词的结果：
+
+    “London”, “is”, “ the”, “capital”, “and”, “most”, “populous”, “city”, “of”, “England”, “and”, “the”, “United”, “Kingdom”, “.”
+
+
+分词在英语中是容易完成的。我们只要分割那些空格分隔的词语。我们也将标点符号作为单词，因为它们也具有含义。
