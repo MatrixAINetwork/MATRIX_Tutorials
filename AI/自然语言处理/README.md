@@ -343,3 +343,64 @@ I had two ponies.
     - also a centre for urban music  
     - the "greenest city" in Europe with 35,000 acres of public parks, woodlands and gardens  
     - not the capital of England, as England does not have its own government
+
+
+#### 还能做什么？
+
+看看这个 spaCy 文档和 textacy 文档，你会发现很多能够用于解析文本的方法示例。目前我们所看见的只是一个小示例。
+
+这里有另外一个实例：想象你正在构建一个能够向用户展示我们在上一个例子中提取出的全世界城市的信息的网站。
+
+如果你的网站有搜索功能，能像谷歌那样能够自动补全常规的查询就太好了：
+
+![](https://i.imgur.com/nG80L3E.png)
+
+
+谷歌对于“伦敦”的自动补全建议
+
+如果这么做，我们就需要一个可能提供给用户的建议列表。我们可以使用 NLP 来快速生成这些数据。
+
+这是从文档中提取常用名词块的一种方式：
+
+
+    import spacy
+    import textacy.extract
+
+    # 加载大型英语 NLP 模型
+    nlp = spacy.load('en_core_web_lg')
+
+    # 需要检测的文档
+    text = """London is the capital and most populous city of England and  the United Kingdom.  
+    Standing on the River Thames in the south east of the island of Great Britain, 
+    London has been a major settlement  for two millennia.  It was founded by the Romans, 
+    who named it Londinium.
+    """
+
+    # 用 spaCy 解析文档
+    doc = nlp(text)
+
+    # 提取半结构化语句
+    statements = textacy.extract.semistructured_statements(doc, "London")
+
+    # 打印结果
+    print("Here are the things I know about London:")
+
+    for statement in statements:
+    subject, verb, fact = statement
+    print(f" - {fact}")
+
+
+如果你用这段代码来处理维基百科上关于伦敦的文章，就会得到如下结果：
+
+    westminster abbey  
+    natural history museum  
+    west end  
+    east end  
+    st paul's cathedral  
+    royal albert hall  
+    london underground  
+    great fire  
+    british museum  
+    london eye
+
+    .... etc ....
