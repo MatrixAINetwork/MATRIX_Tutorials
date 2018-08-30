@@ -25,3 +25,17 @@ During an initial training period, gradient descent tunes the structural paramet
 To demonstrate the potential of differentiable plasticity, we applied it to several challenging tasks that require fast learning from unpredictable stimuli.
 
 In an image reconstruction task (Figure 1), a network memorizes a set of natural images that it has never seen before; then one of these images is shown, but with one half of it erased, and the network must reconstruct the missing half from memory. We show that differentiable plasticity can effectively train large networks, with millions of parameters, to solve this task. Importantly, traditional networks with non-plastic connections (including state-of-the-art recurrent architectures such as LSTMs) cannot solve this task and take considerably more time to learn a massively simplified version of it.
+
+![](https://i.imgur.com/4Qf4Tl6.png)
+
+
+    Figure 1: An image completion task (each row indicates a separate episode). After being shown three images, the network is given a partial image and must reconstruct the missing part from memory. Non-plastic networks (including LSTMs) cannot solve this task. Source images from the CIFAR10 dataset.
+
+
+We also trained plastic networks to solve the Omniglot task (a standard ”learning to learn” task), which requires learning to recognize a set of novel handwritten symbols from a single demonstration of each one. Furthermore, the method can also be applied to reinforcement learning problems: plastic networks outperform non-plastic ones in a maze exploration task in which the agent must discover, memorize, and repeatedly reach the location of a reward within a maze (Figure 2). In this way, the simple idea of adding plasticity coefficients to neural networks offers a genuinely novel approach—sometimes the best available—to solving a wide breadth of problems requiring continuous learning from ongoing experience.
+
+![](https://i.imgur.com/E1BHPAv.png)
+
+
+    Figure 2: A maze exploration task. The agent (yellow square) is rewarded for hitting the reward location (green square) as many times as possible (the agent is teleported to a random location each time it finds the reward). In Episode 1 (left), the agent’s behavior is essentially random. After 300,000 episodes (right), the agent has learnt to memorize the reward location and navigate towards it.
+
