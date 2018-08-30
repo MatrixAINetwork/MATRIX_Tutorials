@@ -16,7 +16,7 @@ In our method, each connection receives an initial weight, as well as a coeffici
 
 ![](https://i.imgur.com/DTgUwyt.png)
 
-The first equation is a typical activation function for neural network units, except that the input weights have a fixed component (green) and a plastic component (red). The Hi,j term in the plastic component is automatically updated as a function of ongoing inputs and outputs (as specified in the second equation—note that other formulations are possible, as discussed in the paper).
+The first equation is a typical activation function for neural network units, except that the input weights have a fixed component (green) and a plastic component (red). The Hi,j term in the plastic component is automatically updated as a function of ongoing inputs and outputs (as specified in the second equation—note that other formulations are possible).
 
 During an initial training period, gradient descent tunes the structural parameters wi,j and αi,j, which determine how large the fixed and plastic components are. As a result, after this initial training, the agent can learn automatically from ongoing experience because the plastic component of each connection is adequately shaped by neural activity to store information, reminiscent of some forms of learning in animals (including humans).
 
