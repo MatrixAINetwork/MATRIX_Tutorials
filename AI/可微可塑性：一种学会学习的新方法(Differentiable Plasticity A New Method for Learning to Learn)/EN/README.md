@@ -11,3 +11,17 @@ To give our artificial agents similar abilities, Uber AI Labs has developed a ne
 
 
 ### How differentiable plasticity works
+
+In our method, each connection receives an initial weight, as well as a coefficient that determines how plastic the connection is. More precisely, the activation yi of neuron i is calculated as follows:
+
+![](https://i.imgur.com/DTgUwyt.png)
+
+The first equation is a typical activation function for neural network units, except that the input weights have a fixed component (green) and a plastic component (red). The Hi,j term in the plastic component is automatically updated as a function of ongoing inputs and outputs (as specified in the second equation—note that other formulations are possible, as discussed in the paper).
+
+During an initial training period, gradient descent tunes the structural parameters wi,j and αi,j, which determine how large the fixed and plastic components are. As a result, after this initial training, the agent can learn automatically from ongoing experience because the plastic component of each connection is adequately shaped by neural activity to store information, reminiscent of some forms of learning in animals (including humans).
+
+### Demonstrating differentiable plasticity
+
+To demonstrate the potential of differentiable plasticity, we applied it to several challenging tasks that require fast learning from unpredictable stimuli.
+
+In an image reconstruction task (Figure 1), a network memorizes a set of natural images that it has never seen before; then one of these images is shown, but with one half of it erased, and the network must reconstruct the missing half from memory. We show that differentiable plasticity can effectively train large networks, with millions of parameters, to solve this task. Importantly, traditional networks with non-plastic connections (including state-of-the-art recurrent architectures such as LSTMs) cannot solve this task and take considerably more time to learn a massively simplified version of it.
