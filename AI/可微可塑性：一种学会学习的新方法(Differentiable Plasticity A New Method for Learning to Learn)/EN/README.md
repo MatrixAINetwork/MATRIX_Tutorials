@@ -39,3 +39,9 @@ We also trained plastic networks to solve the Omniglot task (a standard ”learn
 
     Figure 2: A maze exploration task. The agent (yellow square) is rewarded for hitting the reward location (green square) as many times as possible (the agent is teleported to a random location each time it finds the reward). In Episode 1 (left), the agent’s behavior is essentially random. After 300,000 episodes (right), the agent has learnt to memorize the reward location and navigate towards it.
 
+### Looking forward
+In effect, differentiable plasticity offers a new, biologically-inspired approach to the classical problem of “Learning to Learn,” or “meta-learning.” The approach is also highly flexible, providing gradient descent with an elementary building block (the plastic connection) that it can harness in a variety of powerful ways, as demonstrated in the diverse tasks described above.
+
+Furthermore, it opens the door to multiple new avenues of research. For example, can we improve existing complex network architectures, such as LSTMs, by making their connections plastic? What if the plasticity of the connections was under the control of the network itself, as it seems to be in biological brains through the influence of neuromodulators? Can plasticity offer a more efficient form of memory than recurrence alone (note that recurrence stores incoming information in neural activity, while plasticity stores it in connections, which are much more numerous)?
+
+We intend to investigate these and other exciting questions in our future work in differentiable plasticity and hope others will join us in this exploration. 
