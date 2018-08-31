@@ -99,3 +99,11 @@ Next, we want to consider the importance of a each word in the sentence. English
 Stop words are usually identified by just by checking a hardcoded list of known stop words. But there’s no standard list of stop words that is appropriate for all applications. The list of words to ignore can vary depending on your application.
 
 For example if you are building a rock band search engine, you want to make sure you don’t ignore the word “The”. Because not only does the word “The” appear in a lot of band names, there’s a famous 1980’s rock band called The The!
+
+#### Step 6: Dependency Parsing
+
+
+The next step is to figure out how all the words in our sentence relate to each other. This is called dependency parsing.
+
+The goal is to build a tree that assigns a single parent word to each word in the sentence. The root of the tree will be the main verb in the sentence. Here’s what the beginning of the parse tree will look like for our sentence:
+
