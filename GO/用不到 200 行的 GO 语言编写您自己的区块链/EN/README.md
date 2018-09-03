@@ -107,3 +107,86 @@ Let’s also model out the blockchain itself, which is simply a slice of Block:
     var Blockchain []Block
 
 So how does hashing fit into blocks and the blockchain? We use hashes to identify and keep the blocks in the right order. By ensuring the PrevHash in each Block is identical to Hash in the previous Block we know the proper order of the blocks that make up the chain.
+
+![](https://cdn-images-1.medium.com/max/800/1*VwT5d8NPjUpI7HiwPa--cQ.png)
+
+
+#### Hashing and Generating New Blocks
+
+So why do we need hashing? We hash data for 2 main reasons:
+
+- To save space. Hashes are derived from all the data that is on the block. In our case, we only have a few data points but imagine we have data from hundreds, thousands or millions of previous blocks. It’s much more efficient to hash that data into a single SHA256 string or hash the hashes than to copy all the data in preceding blocks over and over again.
+
+- Preserve integrity of the blockchain. By storing previous hashes like we do in the diagram above, we’re able to ensure the blocks in the blockchain are in the right order. If a malicious party were to come in and try to manipulate the data (for example, to change our heart rate to fix life insurance prices), the hashes would change quickly and the chain would “break”, and everyone would know to not trust that malicious chain.
+
+
+Let’s write a function that takes our Block data and creates a SHA256 hash of it.
+
+    func calculateHash(block Block) string {
+	record := string(block.Index) + block.Timestamp + string(block.BPM) + block.PrevHash
+	h := sha256.New()
+	h.Write([]byte(record))
+	hashed := h.Sum(nil)
+	return hex.EncodeToString(hashed)
+    }
+
+This calculateHash function concatenates Index, Timestamp, BPM, PrevHash of the Block we provide as an argument and returns the SHA256 hash as a string. Now we can generate a new Block with all the elements we need with a new generateBlock function. We’ll need to supply it the previous block so we can get its hash and our pulse rate in BPM. Don’t worry about the BPM int argument that’s passed in. We’ll address that later.
+
+
+    func generateBlock(oldBlock Block, BPM int) (Block, error) {
+
+	var newBlock Block
+
+	t := time.Now()
+
+	newBlock.Index = oldBlock.Index + 1
+	newBlock.Timestamp = t.String()
+	newBlock.BPM = BPM
+	newBlock.PrevHash = oldBlock.Hash
+	newBlock.Hash = calculateHash(newBlock)
+
+	return newBlock, nil
+    }
+
+Notice that the current time is automatically written in the block with time.Now(). Also notice that our prior calculateHash function was called. PrevHash is copied over from the hash of the previous block. Index is incremented from the Index of the previous block.
+
+#### Block Validation
+
+Now we need to write some functions to make sure the blocks haven’t been tampered with. We do this by checking Index to make sure they’ve incremented as expected. We also check to make sure our PrevHash is indeed the same as the Hash of the previous block. Lastly, we want to double check the hash of the current block by running the calculateHash function again on the current block. Let’s write a isBlockValid function that does all these things and returns a bool. It’ll return true if it passes all our checks:
+
+    func isBlockValid(newBlock, oldBlock Block) bool {
+	if oldBlock.Index+1 != newBlock.Index {
+		return false
+	}
+
+	if oldBlock.Hash != newBlock.PrevHash {
+		return false
+	}
+
+	if calculateHash(newBlock) != newBlock.Hash {
+		return false
+	}
+
+	return true
+    }
+
+
+What if we run into an issue where two nodes of our blockchain ecosystem both added blocks to their chains and we received them both. Which one do we pick as the source of truth? We choose the longest chain. This is a classic blockchain issue and has nothing to do with nefarious actors.
+
+
+Two well meaning nodes may simply have different chain lengths, so naturally the longer one will be the most up to date and have the latest blocks. So let’s make sure the new chain we’re taking in is longer than the current chain we have. If it is, we can overwrite our chain with the new one that has the new block(s).
+
+
+![](https://cdn-images-1.medium.com/max/800/1*H1fCp0NLun0Kn0wIy0dyEA.png)
+
+We simply compare the length of the slices of the chains to accomplish this:
+
+    func replaceChain(newBlocks []Block) {
+	if len(newBlocks) > len(Blockchain) {
+		Blockchain = newBlocks
+	}
+    }
+
+If you’ve made it this far, pat yourself on the back! We’ve basically written up the guts of our blockchain with all the various functions we need.
+
+Now we want a convenient way to view our blockchain and write to it, ideally in a web browser so we can show our friends!
