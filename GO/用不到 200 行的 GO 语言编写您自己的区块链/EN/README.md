@@ -29,3 +29,30 @@ What better way to learn about the blockchain than to create your own?
 To keep this post simple, we won’t be dealing with more advanced consensus concepts like proof of work vs. proof of stake. Network interactions will be simulated so you can view your blockchain and see blocks added, but network broadcasting will be reserved for a future post.
 
 
+#### Let’s get started!
+
+Setup
+
+Since we’re going to write our code in Go, we assume you have had some experience with Go. After [installing](https://golang.org/dl/) and configuring Go, we’ll also want to grab the following packages:
+
+    go get github.com/davecgh/go-spew/spew
+
+
+Spew allows us to view structs and slices cleanly formatted in our console. This is nice to have.
+
+    go get github.com/gorilla/mux
+
+
+Gorilla/mux is a popular package for writing web handlers. We’ll need this.
+
+    go get github.com/joho/godotenv
+
+Gotdotenv lets us read from a .env file that we keep in the root of our directory so we don’t have to hardcode things like our http ports. We’ll need this too.
+
+
+Let’s also create a .env file in the root of our directory defining the port that will serve http requests. Just add one line to this file:
+
+    ADDR=8080
+
+
+Create a main.go file. Everything from now on will be written to this file and will be less than 200 lines of code. Let’s get coding!
