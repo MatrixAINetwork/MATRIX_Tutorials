@@ -190,3 +190,127 @@ We simply compare the length of the slices of the chains to accomplish this:
 If you’ve made it this far, pat yourself on the back! We’ve basically written up the guts of our blockchain with all the various functions we need.
 
 Now we want a convenient way to view our blockchain and write to it, ideally in a web browser so we can show our friends!
+
+
+#### Web Server
+
+We assume you’re already familiar with how web servers work and have a bit of experience wiring them up in Go. We’ll walk you through the process now.
+
+We’ll be using the Gorilla/mux package that you downloaded earlier to do the heavy lifting for us.
+
+Let’s create our server in a run function that we’ll call later.
+
+
+    func run() error {
+	mux := makeMuxRouter()
+	httpAddr := os.Getenv("ADDR")
+	log.Println("Listening on ", os.Getenv("ADDR"))
+	s := &http.Server{
+		Addr:           ":" + httpAddr,
+		Handler:        mux,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	if err := s.ListenAndServe(); err != nil {
+		return err
+	}
+
+	return nil
+    }
+
+
+Note that port we choose comes from our .env file that we created earlier. We give ourselves a quick console message with log.Println to let us know the server is up and running. We configure the server a bit and then ListenAndServe. Pretty standard Go stuff.
+
+
+Now we need to write the makeMuxRouter function that will define all our handlers. To view and write to our blockchain in a browser, we only need 2 routes and we’ll keep them simple. If we send a GET request to localhost we’ll view our blockchain. If we send a POST request to it, we can write to it.
+
+    func makeMuxRouter() http.Handler {
+	muxRouter := mux.NewRouter()
+	muxRouter.HandleFunc("/", handleGetBlockchain).Methods("GET")
+	muxRouter.HandleFunc("/", handleWriteBlock).Methods("POST")
+	return muxRouter
+    }
+
+
+Here’s our GET handler:
+
+    func handleGetBlockchain(w http.ResponseWriter, r *http.Request) {
+	bytes, err := json.MarshalIndent(Blockchain, "", "  ")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	io.WriteString(w, string(bytes))
+    }
+
+We simply write back the full blockchain, in JSON format, that we can view in any browser by visiting localhost:8080. We have ourADDR variable set as 8080 in our `.env` file so if you change it, make sure to visit your correct port.
+
+Our POST request is a little bit more complicated, but not by much. To start, we’ll need a new Message struct. We’ll explain in a second why we need it.
+
+
+    type Message struct {
+	BPM int
+    }
+
+Here’s the code for the handler that writes new blocks. We’ll walk you through it after you’ve read it.
+
+    func handleWriteBlock(w http.ResponseWriter, r *http.Request) {
+	var m Message
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&m); err != nil {
+		respondWithJSON(w, r, http.StatusBadRequest, r.Body)
+		return
+	}
+	defer r.Body.Close()
+
+	newBlock, err := generateBlock(Blockchain[len(Blockchain)-1], m.BPM)
+	if err != nil {
+		respondWithJSON(w, r, http.StatusInternalServerError, m)
+		return
+	}
+	if isBlockValid(newBlock, Blockchain[len(Blockchain)-1]) {
+		newBlockchain := append(Blockchain, newBlock)
+		replaceChain(newBlockchain)
+		spew.Dump(Blockchain)
+	}
+
+	respondWithJSON(w, r, http.StatusCreated, newBlock)
+
+    }
+
+
+The reason we used a separate Message struct is to take in the request body of the JSON POST request we’ll use to write new blocks. This allows us to simply send a POST request with the following body and our handler will fill in the rest of the block for us:
+
+    {"BPM":50}
+
+
+The 50 is an example pulse rate in beats per minute. Use your own by changing that integer to your own pulse rate.
+
+After we’re done decoding the request body into our var m Message struct, we create a new block by passing in the previous block and our new pulse rate into the generateBlock function we wrote earlier . This is everything the function needs to create a new block. We do a quick check to make sure the new block is kosher using the isBlockValid function we created earlier.
+
+
+A couple notes
+
+- spew.Dump is a convenient function that pretty prints our structs into the console. It’s useful for debugging.
+- for testing POST requests, we like to use Postman. curl works well too, if you just can’t get away from the terminal.
+
+
+ When our POST requests are successful or unsuccessful, we want to be alerted accordingly. We use a little wrapper function respondWithJSON to let us know what happened. Remember, in Go, never ignore errors. Handle them gracefully.
+
+
+    func respondWithJSON(w http.ResponseWriter, r *http.Request, code int, payload interface{}) {
+	response, err := json.MarshalIndent(payload, "", "  ")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("HTTP 500: Internal Server Error"))
+		return
+	}
+	w.WriteHeader(code)
+	w.Write(response)
+    }
+
+
+
