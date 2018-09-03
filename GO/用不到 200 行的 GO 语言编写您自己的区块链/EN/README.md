@@ -313,4 +313,29 @@ A couple notes
     }
 
 
+#### Almost done!
 
+Let’s wire all these different blockchain functions, web handlers and the web server in a short, clean main function:
+
+    func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	go func() {
+		t := time.Now()
+		genesisBlock := Block{0, t.String(), 0, "", ""}
+		spew.Dump(genesisBlock)
+		Blockchain = append(Blockchain, genesisBlock)
+	}()
+	log.Fatal(run())
+
+    }
+
+
+##### So what’s going on here?
+
+- godotenv.Load() allows us to read in variables like our port number from the.env file we placed at the root of our directory so we don’t have to hardcode them (gross!) throughout our app.
+- genesisBlock is the most important part of the main function. We need to supply our blockchain with an initial block, or else a new block will not be able to compare its previous hash to anything, since a previous hash doesn’t exist.
+- We isolate the genesis block into its own go routine so we can have a separation of concerns from our blockchain logic and our web server logic. This will work without the go routine but it’s just cleaner this way.
