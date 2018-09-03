@@ -56,3 +56,54 @@ Let’s also create a .env file in the root of our directory defining the port t
 
 
 Create a main.go file. Everything from now on will be written to this file and will be less than 200 lines of code. Let’s get coding!
+
+
+#### Imports
+
+Here are the imports we’ll need, along with our package declaration. Let’s write these to main.go
+
+    package main
+
+    import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/davecgh/go-spew/spew"
+	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
+     )
+
+#### Data model
+
+
+Let’s define the struct of each of our blocks that will make up the blockchain. Don’t worry, we’ll explain what all of these fields mean in a minute.
+
+
+    type Block struct {
+	Index     int
+	Timestamp string
+	BPM       int
+	Hash      string
+	PrevHash  string
+    }
+
+Each Block contains data that will be written to the blockchain, and represents each case when you took your pulse rate (remember you did that at the beginning of the article?).
+
+- Index is the position of the data record in the blockchain
+
+- Timestamp is automatically determined and is the time the data is written
+- BPM or beats per minute, is your pulse rate
+- Hash is a SHA256 identifier representing this data record
+- PrevHash is the SHA256 identifier of the previous record in the chain
+
+Let’s also model out the blockchain itself, which is simply a slice of Block:
+
+    var Blockchain []Block
+
+So how does hashing fit into blocks and the blockchain? We use hashes to identify and keep the blocks in the right order. By ensuring the PrevHash in each Block is identical to Hash in the previous Block we know the proper order of the blocks that make up the chain.
