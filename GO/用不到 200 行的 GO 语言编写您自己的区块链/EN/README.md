@@ -339,3 +339,40 @@ Let’s wire all these different blockchain functions, web handlers and the web 
 - godotenv.Load() allows us to read in variables like our port number from the.env file we placed at the root of our directory so we don’t have to hardcode them (gross!) throughout our app.
 - genesisBlock is the most important part of the main function. We need to supply our blockchain with an initial block, or else a new block will not be able to compare its previous hash to anything, since a previous hash doesn’t exist.
 - We isolate the genesis block into its own go routine so we can have a separation of concerns from our blockchain logic and our web server logic. This will work without the go routine but it’s just cleaner this way.
+
+##### Tada! We’re done!
+
+Here’s the full code:
+
+    mycoralhealth/blockchain-tutorial
+
+   [blockchain-tutorial - Write and publish your own blockchain in less than 200 lines of Go](https://github.com/mycoralhealth/blockchain-tutorial/blob/master/main.go)
+
+Now for the fun stuff. Let’s try it out :-)
+
+Fire up your application from terminal using go run main.go
+
+In terminal, we see that the web server is up and running and we get a printout of our genesis block.
+
+
+![](https://cdn-images-1.medium.com/max/800/1*sAkFOcjHxX9WnjGPud84rQ.png)
+
+
+Now, visit localhost with your port number, which for us is 8080. As expected, we see the same genesis block.
+
+![](https://cdn-images-1.medium.com/max/800/1*4HRKAkMy1smgB9xpGLj6RA.png)
+
+Now, let’s send some POST requests to add blocks. Using Postman, we’re going to add a some new blocks with various BPMs.
+
+
+![](https://cdn-images-1.medium.com/max/800/1*eYfFp1lqJUiAS1S6K8ZHbQ.png)
+
+Let’s refresh our browser. Lo and behold, we now see all our new blocks in our chain with the PrevHash of our new ones matching the Hash of the old ones, just as we expected!
+
+![](https://cdn-images-1.medium.com/max/800/1*Qo4eZ0hQ1gMdXrsvBGSnxg.png)
+
+##### Next Steps
+
+Congrats!! You just wrote up your own blockchain with proper hashing and block validation. You should now be able to control your own blockchain journey and explore more complicated topics like Proof of Work, Proof of Stake, Smart Contracts, Dapps, Side Chains and more.
+
+What this tutorial doesn’t address is how new blocks get mined using Proof of Work. This would be a separate tutorial but plenty of blockchains exist without Proof of Work mechanisms. In addition, the network broadcasting is currently simulated by writing and viewing the blockchain in a web server. There is no P2P component in this tutorial.
