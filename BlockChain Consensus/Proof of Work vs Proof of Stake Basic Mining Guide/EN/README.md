@@ -128,3 +128,21 @@ To solve this issue, Buterin created the Casper protocol, designing an algorithm
 He explained: “Economic finality is accomplished in Casper by requiring validators to submit deposits to participate, and taking away their deposits if the protocol determines that they acted in some way that violates some set of rules (‘slashing conditions’).”
 
 Slashing conditions refer to the circumstances above or laws that a user is not supposed to break.
+
+
+### Conclusion
+Thanks to a PoS system validators do not have to use their computing power because the only factors that influence their chances are the total number of their own coins and current complexity of the network.
+
+So this possible future switch from PoW to PoS may provide the following benefits:
+
+Energy savings;
+
+A safer network as attacks become more expensive: if a hacker would like to buy 51% of the total number of coins, the market reacts by fast price appreciation.
+
+This way, CASPER will be a security deposit protocol that relies on an economic consensus system. Nodes (or the validators) must pay a security deposit in order to be part of the consensus thanks to the new blocks creation. Casper protocol will determine the specific amount of rewards received by the validators thanks to its control over security deposits.
+
+If one validator creates an “invalid” block, his security deposit will be deleted, as well as his privilege to be part of the network consensus.
+
+In other words, the Casper security system is based on something like bets. In a PoS-based system, bets are the transactions that, according to the consensus rules, will reward their validator with a money prize together with each chain that the validator has bet on.
+
+So, Casper is based on the idea that validators will bet according to the others’ bets and leave positive feedbacks that are able accelerates consensus.
