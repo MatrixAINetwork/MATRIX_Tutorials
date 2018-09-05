@@ -71,3 +71,20 @@ Proof of work is not only used by the bitcoin blockchain but also by ethereum an
 Some functions of the proof of work system are different because created specifically for each blockchain, but now I don’t want to confuse your ideas with too technical data.
 
 The important thing you need to understand is that now Ethereum developers want to turn the tables, using a new consensus system called proof of stake.
+
+### What is a proof of stake?
+Proof of stake is a different way to validate transactions based and achieve the distributed consensus.
+
+It is still an algorithm, and the purpose is the same of the proof of work, but the process to reach the goal is quite different.
+
+Proof of stake first idea was suggested on the bitcointalk forum back in 2011, but the first digital currency to use this method was Peercoin in 2012, together with ShadowCash, Nxt, BlackCoin, NuShares/NuBits, Qora and Nav Coin.
+
+Unlike the proof-of-Work, where the algorithm rewards miners who solve mathematical problems with the goal of validating transactions and creating new blocks, with the proof of stake, the creator of a new block is chosen in a deterministic way, depending on its wealth, also defined as stake.
+
+No block reward
+
+Also, all the digital currencies are previously created in the beginning, and their number never changes.
+
+This means that in the PoS system there is no block reward, so, the miners take the transaction fees.
+
+This is why, in fact, in this PoS system miners are called forgers, instead.
