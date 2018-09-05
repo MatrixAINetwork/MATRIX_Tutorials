@@ -88,3 +88,43 @@ Also, all the digital currencies are previously created in the beginning, and th
 This means that in the PoS system there is no block reward, so, the miners take the transaction fees.
 
 This is why, in fact, in this PoS system miners are called forgers, instead.
+
+### Why Ethereum wants to use PoS?
+The Ethereum community and its creator, Vitalik Buterin, are planning to do a hard fork to make a transition from proof of work to proof of stake.
+
+But why they want to switch from one to the other?
+
+In a distributed consensus-based on the proof of Work, miners need a lot of energy. One Bitcoin transaction required the same amount of electricity as powering 1.57 American households for one day (data from 2015).
+
+And these energy costs are paid with fiat currencies, leading to a constant downward pressure on the digital currency value.
+
+In a recent research, experts argued that bitcoin transactions may consume as much electricity as Denmark by 2020.
+
+Developers are pretty worried about this problem, and the Ethereum community wants to exploit the proof of stake method for a more greener and cheaper distributed form of consensus.
+
+Also, rewards for the creation of a new block are different: with Proof-of-Work, the miner may potentially own none of the digital currency he/she is mining.
+
+In Proof-of-Stake, forgers are always those who own the coins minted.
+
+### How are forgers selected?
+If Casper (the new proof of stake consensus protocol) will be implemented, there will exist a validator pool. Users can join this pool to be selected as the forger. This process will be available through a function of calling the Casper contract and sending Ether – or the coin who powers the Ethereum network – together with it.
+
+
+### A safer system?
+Any computer system wants to be free from the possibility of hacker attacks, especially if the service is related to money.
+
+So, the main problem is: proof of stake is safer than proof of work?
+
+Experts are worried about it, and there are several skeptics in the community.
+
+Using a Proof-of-Work system, bad actors are cut out thanks to technological and economic disincentives.
+
+In fact, programming an attack to a PoW network is very expensive, and you would need more money than you can be able to steal.
+
+Instead, the underlying PoS algorithm must be as bulletproof as possible because, without especially penalties, a proof of stake-based network could be cheaper to attack.
+
+To solve this issue, Buterin created the Casper protocol, designing an algorithm that can use the set some circumstances under which a bad validator might lose their deposit.
+
+He explained: “Economic finality is accomplished in Casper by requiring validators to submit deposits to participate, and taking away their deposits if the protocol determines that they acted in some way that violates some set of rules (‘slashing conditions’).”
+
+Slashing conditions refer to the circumstances above or laws that a user is not supposed to break.
