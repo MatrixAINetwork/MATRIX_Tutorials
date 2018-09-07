@@ -50,3 +50,51 @@ Bitcoin’s requirements are a bit more complex than this (many more leading zer
 
 So you can see the Bitcoin consensus algorithm is much more interesting than just “solving a math problem”!
 
+
+### Enough background. Let’s get coding!
+Now that we have the background we need, let’s build our own Blockchain program with a Proof-of-Work algorithm. We’ll write it in Go because we use it here at Coral Health and frankly, it’s awesome.
+
+Before proceeding, we recommend reading our original blog post, Code your own blockchain in less than 200 lines of Go! It’s not a requirement but some of the examples below we’ll be running through quickly. Refer to the original post if you need more detail. If you’re already familiar with this original post, skip to the “Proof of Work” section below.
+
+#### Architecture
+
+![](https://cdn-images-1.medium.com/max/800/1*z0fgOU0iYm7Pjc5Zn5nCjA.png)
+
+
+We’ll have a Go server, where for simplicity we’ll put all our code in a single main.go file. This file will provide us all the blockchain logic we need (including Proof of Work) and will contain all the handlers for our REST APIs. This blockchain data is immutable; we only need GET and POST requests. We’ll make requests through the browser to view the data through GET and we’ll use Postman to POST new blocks (curl works fine too).
+
+#### Imports
+
+Let’s start with our standard imports. Make sure to grab the following packages with go get
+
+github.com/davecgh/go-spew/spew pretty prints your blockchain in Terminal
+
+github.com/gorilla/mux a convenience layer for wiring up your web server
+
+github.com/joho/godotenv read your environmental variables from a .env file in your root directory
+
+Let’s create a .env file in our root directory that just stores one environment variable that we’ll need later. Put one line in your .env file:ADDR=8080
+
+Make your package declaration and define your imports in main.go in your root directory:
+
+    package main
+
+    import (
+        "crypto/sha256"
+        "encoding/hex"
+        "encoding/json"
+        "fmt"
+        "io"
+        "log"
+        "net/http"
+        "os"
+        "strconv"
+        "strings"
+        "sync"
+        "time"
+
+        "github.com/davecgh/go-spew/spew"
+        "github.com/gorilla/mux"
+        "github.com/joho/godotenv"
+    )
+
