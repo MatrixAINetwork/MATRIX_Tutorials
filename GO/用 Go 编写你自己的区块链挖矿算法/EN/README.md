@@ -30,3 +30,23 @@ Try hashing “Hello world” over and over again. You get the same hash every t
 A fundamental property of cryptographic algorithms is that they should be extremely hard to reverse engineer to find the input, but extremely easy to verify the output. For example, using the SHA-256 hash above, it should be trivial for someone else to apply the SHA-256 hash algorithm to “Hello world” to check that it indeed produces the same resultant hash, but it should be very hard to take the resultant hash and get “Hello world” from it. This is why this type of cryptography is called one way.
 
 Bitcoin uses Double SHA-256, which is simply applying SHA-256 again to the SHA-256 hash of “Hello world”. For our examples throughout this tutorial we’ll just use SHA-256.
+
+### Mining
+
+Now that we understand what cryptography is, we can get back to cryptocurrency mining. Bitcoin needs to find some way to make participants who want to earn Bitcoin “work” so Bitcoins aren’t released too quickly. Bitcoin achieves this by making the participants hash many combinations of letters and numbers until the resulting hash contains a specific number of leading “0”s.
+
+For example, go back to the [hash website](http://www.xorbin.com/tools/sha256-hash-calculator) and hash “886”. It produces a hash with 3 zeros as a prefix.
+
+![](https://cdn-images-1.medium.com/max/800/1*5l3FgMIR5Gn_AUZ1X5mW9Q.png)
+
+But how did we know that “886” produced something with 3 zeros? That’s the point. Before writing this blog, we didn’t. In theory, we would have had to work through a whole bunch combinations of letters and numbers and tested the results until we got one that matched the 3 zeros requirement. To give you a simple example, we already worked in advance to realize the hash of “886” produced 3 leading zeros.
+
+The fact that anyone can easily check that “886” produces something with 3 leading zeros proves that we did the grunt work of testing and checking a large combination of letters and numbers to get to this result. So if I’m the first one who got this result, I would have earned the Bitcoin by proving I did this work — the proof is that anyone can quickly check that “886” produces the number of zeros I claim it does. This is why the Bitcoin consensus algorithm is called Proof-of-Work.
+
+
+But what if I just got lucky and I got the 3 leading zeros on my first try? This is extremely unlikely and the occasional node that successfully mines a block (proves that they did the work) on their first try is outweighed by millions of others who had to work extra to find the desired hash. Go ahead and try it. Type in any other combination of letters and numbers in the hash website. We bet you won’t get 3 leading zeros.
+
+Bitcoin’s requirements are a bit more complex than this (many more leading zeros!) and it is able to adjust the requirements dynamically to make sure the work required isn’t too easy or too hard. Remember, it aims to release Bitcoin every 10 minutes so if too many people are mining, it needs to make the proof of work harder to compensate. This is called adjusting the difficulty. For our purposes, adjusting the difficulty will just mean requiring more leading zeros.
+
+So you can see the Bitcoin consensus algorithm is much more interesting than just “solving a math problem”!
+
