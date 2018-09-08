@@ -54,3 +54,54 @@ Next up, we should scroll down so that more images can be loaded before we get t
 After testing the above code, you should see the browser scroll down the page a little bit. The next thing we need to be doing is finding the images we want to downalod from the website. After digging around in the code React generates, I figured out that we can use a CSS selector to specifically target the images in the gallery of the page. The specific layout and code of the page might change in the future, but at the time of writing I could use a #gridMulti img selector to get all the <img> elements that were appearing on my screen.
 
 We can get a list of these elements using find_elements_by_css_selector(), but what we want is the src attribute of each element. So, we can iterate over the list and grab those:
+
+    import time
+    from selenium import webdriver
+
+    url = "https://unsplash.com"
+
+    driver = webdriver.Firefox(executable_path=r'geckodriver.exe')
+    driver.get(url)
+
+    driver.execute_script("window.scrollTo(0,1000);")
+    time.sleep(5)
+    # Select image elements and print their URLs
+    image_elements = driver.find_elements_by_css_selector("#gridMulti img")
+    for image_element in image_elements:
+    image_url = image_element.get_attribute("src")
+    print(image_url)
+
+Now, to actually get the images we found. For this, we will use requests and part of the PIL package, namely Image. We also want to use BytesIO from io to write the images to a ./images/ folder that we will create inside our project folder. So, to put this all together, we need to send an HTTP GET request to the URL of each image and then, using Image and BytesIO, we will store the image that we get in the response. Here’s one way to do this:
+
+    import requests
+    import time
+    from selenium import webdriver
+    from PIL import Image
+    from io import BytesIO
+
+    url = "https://unsplash.com"
+
+    driver = webdriver.Firefox(executable_path=r'geckodriver.exe')
+    driver.get(url)
+
+    driver.execute_script("window.scrollTo(0,1000);")
+    time.sleep(5)
+    image_elements = driver.find_elements_by_css_selector("#gridMulti img")
+    i = 0
+
+    for image_element in image_elements:
+    image_url = image_element.get_attribute("src")
+    # Send an HTTP GET request, get and save the image from the response
+    image_object = requests.get(image_url)
+    image = Image.open(BytesIO(image_object.content))
+    image.save("./images/image" + str(i) + "." + image.format, image.format)
+    i += 1
+
+That’s pretty much all you need to get a bunch of free images downloaded. Obviously, unless you want to prototype a design and you just need random images, this little scraper isn’t of much use. So, I took some time to improve it, by adding a few more features:
+
+- Command line arguments that allow the user to specify a search query, as well as a numeric value for scrolling, which allows the page to display more images for downloading.
+- Customizable CSS selector.
+- Customized result folders, based on search queries.
+- Full HD images by cropping the URL of the thumbnails, as necessary.
+- Named images, based on their URLs.
+- Closing the browser window at the end of the process.
