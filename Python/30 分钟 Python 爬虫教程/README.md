@@ -49,3 +49,56 @@
     # 向下滚动页面并且等待 5 秒钟
     driver.execute_script("window.scrollTo(0,1000);")
     time.sleep(5)
+
+
+滚动页面并等待 5 秒钟。
+
+测试完以上代码后，你应该会看到浏览器的页面稍微往下滚动了一些。下一步我们要做的就是找到我们要下载的那些图片。在探索了一番 React 生成的代码之后，我发现了我们可以使用一个 CSS 选择器来定位到网页上画廊的图片。网页上的布局和代码在以后可能会发生改变，但目前我们可以使用 #gridMulti img 选择器来获得屏幕上可见的所有 <img> 元素。
+
+我们可以通过 [find_elements_by_css_selector()](http://selenium-python.readthedocs.io/api.html#selenium.webdriver.remote.webdriver.WebDriver.find_element_by_css_selector) 得到这些元素的一个列表，但我们想要的是这些元素的 src 属性。我们可以遍历这个列表并一一抽取出 src 来：
+
+
+    import time
+    from selenium import webdriver
+
+    url = "https://unsplash.com"
+
+    driver = webdriver.Firefox(executable_path=r'geckodriver.exe')
+    driver.get(url)
+
+    driver.execute_script("window.scrollTo(0,1000);")
+    time.sleep(5)
+    # 选择图片元素并打印出他们的 URL
+    image_elements = driver.find_elements_by_css_selector("#gridMulti img")
+    for image_element in image_elements:
+    image_url = image_element.get_attribute("src")
+    print(image_url)
+
+选择图片元素并获得图片 URL。
+
+现在为了真正获得我们找到的图片，我们会使用 requests 库和 PIL 的部分功能，也就是 Image。我们还会用到 io 库里面的 BytesIO 来将图片写到文件夹 ./images/ 中（在项目文件夹中创建）。现在把这些都一起做了，我们要先往每张图片的 URL 链接发送一个 HTTP GET 请求，然后使用 Image 和 BytesIO 来将返回的图片存储起来。以下是实现这个功能的其中一种方式：
+
+    import requests
+    import time
+    from selenium import webdriver
+    from PIL import Image
+    from io import BytesIO
+
+    url = "https://unsplash.com"
+
+    driver = webdriver.Firefox(executable_path=r'geckodriver.exe')
+    driver.get(url)
+
+    driver.execute_script("window.scrollTo(0,1000);")
+    time.sleep(5)
+    image_elements = driver.find_elements_by_css_selector("#gridMulti img")
+    i = 0
+
+    for image_element in image_elements:
+    image_url = image_element.get_attribute("src")
+    # 发送一个 HTTP GET 请求，从响应内容中获得图片并将其存储
+    image_object = requests.get(image_url)
+    image = Image.open(BytesIO(image_object.content))
+    image.save("./images/image" + str(i) + "." + image.format, image.format)
+    i += 1
+
