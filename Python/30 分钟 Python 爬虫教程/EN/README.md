@@ -105,3 +105,15 @@ That’s pretty much all you need to get a bunch of free images downloaded. Obvi
 - Full HD images by cropping the URL of the thumbnails, as necessary.
 - Named images, based on their URLs.
 - Closing the browser window at the end of the process.
+
+
+You can (and probably should) try implementing some of these features on your own. The full-featured version of the web scraper is available here. Remember to download geckodriver separately and connect it to your project, as instructed at the start of the article.
+
+
+### Limitations, Considerations and Future Improvements
+This whole project was a very simple proof-of-concept to see how web scraping is done, meaning there are a lot of things one can do to improve upon this little tool:
+
+- Not crediting the original uploaders of the images is a pretty bad idea. Selenium is definitely capable of working around this, so that each image comes with the name of the author.
+Geckodriver shouldn’t be placed in the project folder, but rather installed globally and be part of the PATH system variable.
+- The search functionality could be easily extended to include multiple queries, so that the process of downloading lots of images can be simplified.
+- The default browser could be changed from Firefox to Chrome or even PhantomJS, which would be a lot better for this kind of project.
