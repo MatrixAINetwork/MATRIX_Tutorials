@@ -146,3 +146,4 @@ If one validator creates an “invalid” block, his security deposit will be de
 In other words, the Casper security system is based on something like bets. In a PoS-based system, bets are the transactions that, according to the consensus rules, will reward their validator with a money prize together with each chain that the validator has bet on.
 
 So, Casper is based on the idea that validators will bet according to the others’ bets and leave positive feedbacks that are able accelerates consensus.
+
