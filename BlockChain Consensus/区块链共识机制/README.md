@@ -143,3 +143,26 @@ s 个议员必须在区块被提交之前对某个交易达成共识。
 
 
 ![](https://i.imgur.com/PpgYswC.png)
+
+图 8:发言人建立一个区块提案并由议员审查
+
+议员收到提案并进行验证：
+
+- 时间格式是否与系统规则保持一致？
+
+- 区块链中是否已存在该交易？
+
+- 合同脚本是否被正确执行？
+
+- 该交易是否只包单次支付？（也就是说，该交易是否能避免重复支付？）
+
+- 如果提案通过验证则广播:
+
+<prepareResponse, h, k, i, [block]sigi>
+
+- 如果提案未通过验证则广播：
+
+<ChangeView, h,k,i,k+1>
+
+![](https://raw.githubusercontent.com/neo-project/docs/master/assets/consensus4.png)
+图 9:议员审查区块链提案并响应
