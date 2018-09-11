@@ -28,4 +28,22 @@ We define Zombie Tokens as ones which i) lack critical mass of users/supporters,
 
 Zombie Tokens are very different than outright failed projects. Zombie Tokens may actually contribute to project failure by i) signaling a limited number of supporters, ii) making it difficult to attract exchange listings and, if attracted, virtually guarantee inefficient price discovery and liquidity due to low volume, iii) create frustrated token holders who are constantly sniping. All of these factors distract and can create a negative feedback cycle.
 
-It’s easy to be critical. That’s not our intent. Our objective is to assist the crypto / blockchain community to create a robust yet rational, sustainable, legally and regulatory compliant marketplace for crypto currencies and tokens. We’ve been direct participants in past eras of irrational exuberance and believe, as well stated by Carlota Perez in Technological Revolutions and Financial Capital, that such a state is a precursor to “great technological surges of development.” However, the immediate aftermath can be painful.
+It’s easy to be critical. That’s not our intent. Our objective is to assist the crypto / blockchain community to create a robust yet rational, sustainable, legally and regulatory compliant marketplace for crypto currencies and tokens. We’ve been direct participants in past eras of irrational exuberance and believe, as well stated by Carlota Perez in [Technological Revolutions and Financial Capital](https://www.amazon.com/Technological-Revolutions-Financial-Capital-Dynamics/dp/1843763311), that such a state is a precursor to “great technological surges of development.” However, the immediate aftermath can be painful.
+
+
+## Suggestions for Consideration
+
+We are crypto / blockchain believers but recognize that the market will suffer growing pains, some of which are beginning to manifest today. For those seeking to use tokens as a funding vehicle or as an in-platform incentive mechanism, we’d suggest considering the following:
+
+Prepare carefully, assume a challenging market reception with tough questions and increasingly higher purchaser expectations.
+Assume that you will need to engage with the growing number of professional crypto purchasers to successfully complete an ICO.
+Assume the regulators will regulate eventually, in some manner. Take steps to mitigate current and prospective risks.
+Build in flexibility to adapt to the future unknown. For example, be cautious about pre-determining all token terms. Adaptation for platform use case or additional capital may be advantageous.
+
+
+## Open Source Backup Materials
+
+For those interested, [here](https://docs.google.com/spreadsheets/d/1cpDOY_AnbO9UiUIDde7CagHzfOTDHVw4l927_7sdKSw/edit?usp=sharing) is the Google Spreadsheet for all our data analytics. We intend to allow for commenting, editing and corrections.
+
+
+On a final note, we are aware of the ongoing debate on the proper words to use to describe what has become colloquially known as an ICO or Initial Coin Offering. We prefer Token Distribution, others have gelled around TGE or Token Generation Event. Regardless, it’s form over substance in our mind. The regulators are not going to be influenced by the name used to describe this type of transaction. We’ve stuck with ICO in this article as it’s the most commonly used and widely understood term.
