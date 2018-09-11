@@ -166,3 +166,26 @@ s 个议员必须在区块被提交之前对某个交易达成共识。
 
 ![](https://raw.githubusercontent.com/neo-project/docs/master/assets/consensus4.png)
 图 9:议员审查区块链提案并响应
+
+
+在收到 s 个 'prepareResponse' 广播后，该议员就达成共识并发布一个区块。
+
+该议员对区块进行签名
+
+![](https://raw.githubusercontent.com/neo-project/docs/master/assets/consensus5.png)
+
+图 10:达成共识，批准该交易的议员对区块签名，并将其绑定到区块链上
+
+当一个共识节点接收到整个区块的时候，当前视图的数据将被清除并开始新一轮的共识。
+
+    k = 0
+
+注意：
+
+如果在超时之后，没有就该视图达成共识：
+
+共识节点会广播：
+
+     <ChangeView, h,k,i,k+1>
+
+一旦某个共识节点收到了至少 s 个广播内容表示要改变该视图，它将会递增视图 v 并发起新一轮共识。
