@@ -181,3 +181,24 @@ trainMode = 5:
 命令：
 
     $./starspace train -trainFile input.txt -model pagespace -label 'page' -trainMode 1
+
+
+## DocSpace 文档推荐
+
+用途： 我们希望根据用户的历史喜好和点击数据为用户生成嵌入和推荐网络文档。
+
+模型： 每个文件都由文件的一个集合来表示。 每个用户都被表示为他们过去喜欢/点击过的文档（集合）。 在训练时，在每一步选择一个随机文件作为标签量，剩下的文件被选为输入量。
+
+
+![](https://user-gold-cdn.xitu.io/2018/2/14/1619268ba6ede311?imageslim)
+
+输入文件格式：
+
+    roger federer loses <tab> venus williams wins <tab> world series ended
+    i love cats <tab> funny lolcat links <tab> how to be a petsitter  
+
+每行是一个用户，每个文档（由标签分隔的文档）是他们喜欢的文档。 所以第一个用户喜欢运动，而第二个用户对这种情况感兴趣。
+
+命令：
+
+    ./starspace train -trainFile input.txt -model docspace -trainMode 1 -fileFormat labelDoc
