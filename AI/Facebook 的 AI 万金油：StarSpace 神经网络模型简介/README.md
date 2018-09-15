@@ -202,3 +202,26 @@ trainMode = 5:
 命令：
 
     ./starspace train -trainFile input.txt -model docspace -trainMode 1 -fileFormat labelDoc
+
+
+## GraphSpace 知识库中的链接预测
+
+用途： 学习 Freebase 中的实体与关系之间的映射。在 freebase 中，数据以格式输入。
+
+    (head_entity, relation_type, tail_entity)
+
+执行链接预测可以将数据格式化为填充不完整的三元组
+
+
+    (head_entity, relation_type, ?) or (?, relation_type, tail_entity)
+
+
+模型： 我们学习所有实体和关系类型的嵌入。对于每一个 realtion_type，我们学习两个嵌入：一个用于预测给定 head_entity 的 tail_entity，一个用于预测给定 tail_entity 的 head_entity。
+
+
+![](https://user-gold-cdn.xitu.io/2018/2/14/16192696723931a9?imageslim)
+
+示例脚本：
+[这个示例脚本](https://link.juejin.im/?target=https%3A%2F%2Fgithub.com%2Ffacebookresearch%2FStarspace%2Fblob%2Fmaster%2Fexamples%2Fmulti_relation_example.sh) 将会从[这里](https://link.juejin.im/?target=https%3A%2F%2Feverest.hds.utc.fr%2Fdoku.php%3Fid%3Den%3Atranse)下载 Freebase15k 数据并在其上运行 StarSpace 模型：
+
+    $bash examples/multi_relation_example.sh
