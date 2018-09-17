@@ -40,3 +40,46 @@ You need to install Boost library and specify the path of boost library in makef
 
 
 Optional: if one wishes to run the unit tests in src directory, google test is required and its path needs to be specified in 'TEST_INCLUDES' in the makefile.
+
+
+## Building StarSpace
+
+In order to build StarSpace, use the following:
+
+    git clone https://github.com/facebookresearch/Starspace.git
+    cd Starspace
+    make
+
+## File Format
+
+StarSpace takes input files of the following format. Each line will be one input example, in the simplest case the input has k words, and each labels 1..r is a single word:
+
+    word_1 word_2 ... word_k __label__1 ... __label__r
+
+This file format is the same as in fastText. It assumes by default that labels are words that are prefixed by the string __label__, and the prefix string can be set by "-label" argument.
+
+In order to learn the embeddings, do:
+
+    $./starspace train -trainFile data.txt -model modelSaveFile
+
+where data.txt is a training file containing utf-8 encoded text. At the end of optimization the program will save two files: model and modelSaveFile.tsv. modelSaveFile.tsv is a standard tsv format file containing the entity embedding vectors, one per line. modelSaveFile is a binary file containing the parameters of the model along with the dictionary and all hyper parameters. The binary file can be used later to compute entity embedding vectors or to run evaluation tasks.
+
+In the more general case, each label also consists of words:
+
+    word_1 word_2 ... word_k <tab> label_1_word_1 label_1_word_2 ... <tab> label_r_word_1 .. 
+
+Embedding vectors will be learned for each word and label to group similar inputs and labels together.
+
+In order to learn the embeddings in the more general case where each label consists of words, one needs to specify the -fileFormat flag to be 'labelDoc', as follows:
+
+    $./starspace train -trainFile data.txt -model modelSaveFile -fileFormat labelDoc
+
+We also extend the file format to support real-valued weights (in both input and label space) by setting argument "-useWeight" to true (default is false). If "-useWeight" is true, we support weights by the following format
+
+    word_1:wt_1 word_2:wt_2 ... word_k:wt_k __label__1:lwt_1 ...    __label__r:lwt_r
+
+e.g.,
+
+    dog:0.1 cat:0.5 ...
+
+The default weight is 1 for any word / label that does not contain weights.
