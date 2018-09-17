@@ -225,3 +225,41 @@ trainMode = 5:
 [这个示例脚本](https://link.juejin.im/?target=https%3A%2F%2Fgithub.com%2Ffacebookresearch%2FStarspace%2Fblob%2Fmaster%2Fexamples%2Fmulti_relation_example.sh) 将会从[这里](https://link.juejin.im/?target=https%3A%2F%2Feverest.hds.utc.fr%2Fdoku.php%3Fid%3Den%3Atranse)下载 Freebase15k 数据并在其上运行 StarSpace 模型：
 
     $bash examples/multi_relation_example.sh
+
+
+## SentenceSpace 学习句子的嵌入
+
+用途： 学习句子之间的映射。给定一个句子的嵌入，可以找到语义上相似或相关的句子。
+
+模型： 每个例子是语义相关的句子的集合。 随机采用 trainMode 3 来选择两个：一个作为输入，一个作为标签，其他句子被挑选为随机的否定。 在没有标注的情况下获取语义相关句子的一个简单方法是考虑同一文档中的所有句子是相关的，然后在这些文档上进行训练。
+
+
+![](https://user-gold-cdn.xitu.io/2018/2/14/1619269e53dd90bc?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+
+示例脚本：
+
+会下载一些数据，其中每个示例都是来自同一维基百科页面的一组语句，并在其上运行StarSpace模型：
+
+    $bash examples/wikipedia_sentence_matching.sh
+
+为了能运行[这篇论文](https://link.juejin.im/?target=https%3A%2F%2Farxiv.org%2Fabs%2F1709.03856)中提出的 Wikipedia Sentence Matching 问题的完整实验， 请使用[这个脚本](https://link.juejin.im/?target=https%3A%2F%2Fgithub.com%2Ffacebookresearch%2FStarspace%2Fblob%2Fmaster%2Fexamples%2Fwikipedia_sentence_matching_full.sh)（警告：下载数据和训练模型需要很长时间）：
+
+    $bash examples/wikipedia_sentence_matching_full.sh
+
+
+## ArticleSpace 学习句子和文章嵌入
+
+用途： 学习句子和文章之间的映射关系。给定句子的嵌入，可以找到相关文章。
+
+模型： 每个例子都是包含多个文章的句子。 训练时，随机选取的句子作为输入，那么文章中剩余的句子成为标签，其他文章可以作为随机底片。 (trainMode 2).
+
+示例脚本：
+
+这个[示例脚](https://link.juejin.im/?target=https%3A%2F%2Fgithub.com%2Ffacebookresearch%2FStarspace%2Fblob%2Fmaster%2Fexamples%2Fwikipedia_article_search.sh)本将下载数据，其中的每个示例都是维基百科的文章，并在其上运行 StarSpace 模型：
+
+    $bash examples/wikipedia_article_search.sh
+
+为了能运行[这篇论文](https://link.juejin.im/?target=https%3A%2F%2Farxiv.org%2Fabs%2F1709.03856)中提出的 Wikipedia Sentence Matching 问题的完整实验， 请使用[这个脚本](https://link.juejin.im/?target=https%3A%2F%2Fgithub.com%2Ffacebookresearch%2FStarspace%2Fblob%2Fmaster%2Fexamples%2Fwikipedia_article_search_full.sh)（提示：这将需要一些时间去下载数据并训练模型）：
+
+
+    $bash examples/wikipedia_article_search_full.sh
