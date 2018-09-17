@@ -213,3 +213,168 @@ Example scripts:
 This example script downloads the Freebase15k data from here and runs the StarSpace model on it:
 
     $bash examples/multi_relation_example.sh
+
+
+## SentenceSpace: Learning Sentence Embeddings
+
+Setting: Learning the mapping between sentences. Given the embedding of one sentence, one can find semantically similar/relevant sentences.
+
+Model: Each example is a collection of sentences which are semantically related. Two are picked at random using trainMode 3: one as the input and one as the label, other sentences are picked as random negatives. One easy way to obtain semantically related sentences without labeling is to consider all sentences in the same document are related, and then train on those documents.
+
+
+![](https://user-gold-cdn.xitu.io/2018/2/14/1619269e53dd90bc?imageslim)
+
+
+Example scripts:
+
+This example script downloads data where each example is a set of sentences from the same Wikipedia page and runs the StarSpace model on it:
+
+    $bash examples/wikipedia_sentence_matching.sh
+
+To run the full experiment on Wikipedia Article Search presented in [this paper](https://arxiv.org/abs/1709.03856), use [this script](https://github.com/facebookresearch/Starspace/blob/master/examples/wikipedia_article_search_full.sh) (warning: it takes a long time to download data and train the model):
+
+
+    $bash examples/wikipedia_sentence_matching_full.sh
+
+## ArticleSpace: Learning Sentence and Article Embeddings
+
+Setting: Learning the mapping between sentences and articles. Given the embedding of one sentence, one can find the most relevant articles.
+
+Model: Each example is an article which contains multiple sentences. At training time, one sentence is picked at random as the input, the remaining sentences in the article becomes the label, other articles are picked as random negatives (trainMode 2).
+
+Example scripts:
+
+[This example script ](https://github.com/facebookresearch/Starspace/blob/master/examples/wikipedia_article_search.sh)downloads data where each example is a Wikipedia article and runs the StarSpace model on it:
+
+    $bash examples/wikipedia_article_search.sh
+
+
+To run the full experiment on Wikipedia Article Search presented in [this paper](https://arxiv.org/abs/1709.03856), use [this script](https://github.com/facebookresearch/Starspace/blob/master/examples/wikipedia_article_search_full.sh) (warning: it takes a long time to download data and train the model):
+
+
+    $bash examples/wikipedia_article_search_full.sh
+
+
+## ImageSpace: Learning Image and Label Embeddings
+
+With the most recent update, StarSpace can also be used to learn joint embeddings with images and other entities. For instance, one can use ResNet features (the last layer of a pre-trained ResNet model) to represent an image, and embed images with other entities (words, hashtags, etc.). Just like other entities in Starspace, images can be either on the input or the label side, depending on your task.
+
+Here we give an example using CIFAR-10 to illustrate how we train images with other entities (in this example, image class): we train a ResNeXt model on CIFAR-10 which achieves 96.34% accuracy on test dataset, and use the last layer of ResNeXt as the features for each image. We embed 10 image classes together with image features in the same space using StarSpace. For an example image from class 1 with last layer (0.8, 0.5, ..., 1.2), we convert it to the following format:
+
+    d1:0.8  d2:0.5   ...    d1024:1.2   __label__1
+
+
+
+After converting train and test examples of CIFAR-10 to the above format, we ran [this example script](https://github.com/facebookresearch/StarSpace/blob/master/examples/image_feature_example_cifar10.sh):
+
+
+    $bash examples/image_feature_example_cifar10.sh
+
+
+and achieved 96.40% accuracy on an average of 5 runs.
+
+## Full Documentation of Parameters
+
+    Run "starspace train ..." or "starspace test ..."
+
+    The following arguments are mandatory for train: 
+      -trainFile       training file path
+      -model           output model file path
+
+    The following arguments are mandatory for test: 
+      -testFile        test file path
+      -model           model file path
+
+    The following arguments for the dictionary are optional:
+      -minCount        minimal number of word occurences [1]
+      -minCountLabel   minimal number of label occurences [1]
+      -ngrams          max length of word ngram [1]
+      -bucket          number of buckets [2000000]
+      -label           labels prefix [__label__]. See file format section.
+
+    The following arguments for training are optional:
+      -initModel       if not empty, it loads a previously trained model in -initModel and carry on training.
+      -trainMode       takes value in [0, 1, 2, 3, 4, 5], see Training Mode Section. [0]
+      -fileFormat      currently support 'fastText' and 'labelDoc', see File Format Section. [fastText]
+      -validationFile  validation file path
+      -validationPatience    number of iterations of validation where does not improve before we stop training [10]
+      -saveEveryEpoch  save intermediate models after each epoch [false]
+      -saveTempModel   save intermediate models after each epoch with an unique name including epoch number [false]
+      -lr              learning rate [0.01]
+      -dim             size of embedding vectors [100]
+      -epoch           number of epochs [5]
+      -maxTrainTime    max train time (secs) [8640000]
+      -negSearchLimit  number of negatives sampled [50]
+      -maxNegSamples   max number of negatives in a batch update [10]
+      -loss            loss function {hinge, softmax} [hinge]
+      -margin          margin parameter in hinge loss. It's only effective if hinge loss is used. [0.05]
+      -similarity      takes value in [cosine, dot]. Whether to use cosine or dot product as similarity function in  hinge loss.
+                   It's only effective if hinge loss is used. [cosine]
+      -p               normalization parameter: we normalize sum of embeddings by deviding Size^p, when p=1, it's equivalent to taking average of embeddings; when p=0, it's equivalent to taking sum of embeddings. [0.5]
+      -adagrad         whether to use adagrad in training [1]
+      -shareEmb        whether to use the same embedding matrix for LHS and RHS. [1]
+      -ws              only used in trainMode 5, the size of the context window for word level training. [5]
+      -dropoutLHS      dropout probability for LHS features. [0]
+      -dropoutRHS      dropout probability for RHS features. [0]
+      -initRandSd      initial values of embeddings are randomly generated from normal distribution with mean=0, standard deviation=initRandSd. [0.001]
+      -trainWord       whether to train word level together with other tasks (for multi-tasking). [0]
+      -wordWeight      if trainWord is true, wordWeight specifies example weight for word level training examples. [0.5]
+
+    The following arguments for test are optional:
+      -basedoc         file path for a set of labels to compare against true label. It is required when -fileFormat='labelDoc'.
+                   In the case -fileFormat='fastText' and -basedoc is not provided, we compare true label with all other labels in the dictionary.
+      -predictionFile  file path for save predictions. If not empty, top K predictions for each example will be saved.
+      -K               if -predictionFile is not empty, top K predictions for each example will be saved.
+
+    The following arguments are optional:
+      -normalizeText   whether to run basic text preprocess for input files [0]
+      -useWeight       whether input file contains weights [0]
+      -verbose         verbosity level [0]
+      -debug           whether it's in debug mode [0]
+      -thread          number of threads [10]
+
+Note: We use the same implementation of word n-grams for words as in fastText. When "-ngrams" is set to be larger than 1, a hashing map of size specified by the "-bucket" argument is used for n-grams; when "-ngrams" is set to 1, no hash map is used, and the dictionary contains all words within the minCount and minCountLabel constraints.
+
+## Utility Functions
+
+We also provide a few utility functions for StarSpace：
+
+## Show Predictions for Queries
+A simple way to check the quality of a trained embedding model is to inspect the predictions when typing in an input. To build and use this utility function, run the following commands:
+
+    make query_predict
+    ./query_predict <model> k [basedocs]
+
+where "<model>" specifies a trained StarSpace model and the optional K specifies how many of the top predictions to show (top ranked first). "basedocs" points to the file of documents to rank, see also the argument of the same name in the starspace main above. If "basedocs" is not provided, the labels in the dictionary are used instead.
+
+After loading the model, it reads a line of entities (can be either a single word or a sentence / document), and outputs the predictions.
+
+## Nearest Neighbor Queries
+Another simple way to check the quality of a trained embedding model is to inspect nearest neighbors of entities. To build and use this utility function, run the following commands:
+
+    make query_nn
+    ./query_nn <model> [k]
+
+
+where "<model>" specifies a trained StarSpace model and the optional K (default value is 5) specifies how many nearest neighbors to search for.
+
+After loading the model, it reads a line of entities (can be either a single word or a sentence / document), and output the nearest entities in embedding space.
+
+## Print Ngrams
+As the ngrams used in the model are not saved in tsv format, we also provide a separate function to output n-grams embeddings from the model. To use that, run the following commands:
+
+    make print_ngrams
+    ./print_ngrams <model>
+
+where "<model>" specifies a trained StarSpace model with argument -ngrams > 1.
+
+
+## Print Sentence / Document Embedding
+
+Sometimes it is useful to print out sentence / document embeddings from a trained model. To use that, run the following commands:
+
+    make embed_doc
+    ./embed_doc <model> [filename]
+
+where "<model>" specifies a trained StarSpace model. If filename is provided, it reads each sentence / document from file, line by line, and outputs vector embeddings accordingly. If the filename is not provided, it reads each sentence / document from stdin.
+
