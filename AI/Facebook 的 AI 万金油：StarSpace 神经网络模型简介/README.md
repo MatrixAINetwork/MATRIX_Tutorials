@@ -263,3 +263,108 @@ trainMode = 5:
 
 
     $bash examples/wikipedia_article_search_full.sh
+
+
+## ImageSpace 学习图像和标签的嵌入
+
+通过最新的更新，StarSpace 也可以用来学习图像和其他实体的嵌入。例如，可以使用 ResNet 特征（预先训练的 ResNet 模型的最后一层）来表示图像，并将图像和其他实体（单词，主题标签等）一起嵌入。就像 StarSpace 中的其他实体一样，图像可以在输入或标签上，这取决于不同的任务。
+
+这里我们给出一个使用 CIFAR-10 的例子以说明我们如何与其他实体进行图像训练 (在这个例子中，指为图像类)：我们训练模型 ResNeXt 在 CIFAR-10  在测试数据集上达到 96.34％ 的准确率，并将最后一层 ResNet 作为每幅图像的特征。我们使用 StarSpace 将 10 个图像类与图像特征一起嵌入到相同的空间中。对于最后一层（0.8,0.5，...，1.2）的类 1 的示例，我们将其转换为以下格式：
+
+
+    d1:0.8  d2:0.5   ...    d1024:1.2   __label__1
+
+将 CIFAR-10 的训练和测试例转换成上述格式后，我们运行这个[示例脚本](https://link.juejin.im/?target=https%3A%2F%2Fgithub.com%2Ffacebookresearch%2FStarSpace%2Fblob%2Fmaster%2Fexamples%2Fimage_feature_example_cifar10.sh)：
+
+    $bash examples/image_feature_example_cifar10.sh
+
+平均每 5 次达到 96.56％ 的准确度。
+
+## 完整的参数文档
+
+    运行 "starspace train ..." 或 "starspace test ..."
+
+    以下参数是训练时必须的：
+      -trainFile       训练文件路径。
+      -model           模型文件输出路径。
+
+    以下参数是训练时必须的：
+      -testFile        测试文件路径。
+      -model           模型文件路径。
+
+    以下是字典相关的可选参数：
+      -minCount        单词量的最少个数，默认为 1。
+      -minCountLabel   标签量的最少个数，默认为 1。
+      -ngrams          单词元数的最大长度，默认为 1。
+      -bucket          buckets 的数量，默认为 2000000。
+      -label           标签量前缀，默认为 __label__，可参加文件格式一节。
+
+    以下参数是训练时可选的：
+      -initModel       如果非空，则在 -initModel 中加载先前训练过的模型并进行训练。
+      -trainMode       选择 [0, 1, 2, 3, 4, 5] 中的一个值，参见训练模式一节，默认为 0。
+      -fileFormat      当前支持‘fastText’和‘labelDoc’，参见文件格式一节，默认为 fastText。
+      -saveEveryEpoch  在每次迭代后保存中间模型，默认为 false。
+      -saveTempModel   在每次迭代之后用包括迭代词的的唯一名字保存中间模型，默认为 false。
+      -lr              学习速度，默认为 0.01。
+      -dim             嵌入矢量的大小，默认为 10。
+      -epoch           迭代次数，默认为 5。
+      -maxTrainTime    最长训练时间（秒），默认为 8640000。
+      -negSearchLimit  抽样中的拒绝上限，默认为 50。
+      -maxNegSamples   一批更新中的拒绝上限，默认为 10。
+      -loss            loss 函数，可能是 hinge 或 softmax 中的一个，默认为 hinge。
+      -margin          hinge loss 的边缘参数。只在 loss 为 hinge 时有意义，默认为0.05。
+      -similarity      选择 [cosine, dot] 中的一个，用于在 hinge loss 选定相似度函数。
+                       只在 loss 为 hinge 时有意义，默认为 cosine。
+      -adagrad         是否在训练中使用 adagrad，默认为 1。
+      -shareEmb        是否对LHS和RHS使用相同的嵌入矩阵，默认为 1。
+      -ws              在 trainMode 5 时有效，单词级别训练的上下文窗口大小，默认为 5。
+      -dropoutLHS      LHS特征的放弃概率，默认为 0。
+      -dropoutRHS      RHS特征的放弃概率，默认为 0。
+      -initRandSd      嵌入的初始值是从正态分布随机生成的，其中均值为 0，标准差为 initRandSd，默认为 0.001。
+
+    以下参数是测试时可选的：
+      -basedoc         一组标签的文件路径与真实标签进行比较。 -fileFormat='labelDoc' 时需要。
+                       在 -fileFormat ='fastText' 且 不提供 -basedoc 的情况下，我们将会对真正的标签与字典中的所有其他标签进行比较。
+      -predictionFile  保存预测的文件路径。如果不为空，则将保存每个示例的前K个预测。
+      -K               如果 -predictionFile 参数非空，为每个实例进行的顶层的 K 预测将被保存。
+
+    以下参数是可选的：
+      -normalizeText   是否为输入文件运行基本的文本预处理，默认为 0，不进行预处理。
+      -useWeight       输入文件是否自带权重，默认为 0，不自带权重。
+      -verbose         消息输出详细程度，默认为 0，普通输出。
+      -debug           是否使用调试模式，默认为 0，关闭调试模式。
+      -thread          线程数量，默认为 10。
+
+
+注意：我们使用与在 fastText 中相同的单词 n-gram 实现。当“-ngrams”被设置为大于1时，由“-bucket”参数指定的大小的哈希映射被用于 n-gram；当“-ngrams”设置为 1 时，不使用哈希映射，并且该字典包含 minCount 和 minCountLabel 约束内的所有单词。
+
+
+## Utility Functions
+
+我们还为 StarSpace 提供了一些实用功能：
+
+
+### 显示查询的预测
+
+检查经过训练的嵌入模型质量的一个简单方法是在键入输入时检查预测。要构建和使用该实用程序功能，请运行以下命令：
+
+    make query_predict
+    ./query_predict <model> k [basedocs]
+
+
+其中 <model> 指定一个受过训练的 StarSpace 模型，可选的 K 指定显示多少个顶部预测（排名第一）。 “basedocs” 指向要排序的文件的文件，也参见上面主要 StarSpace 中同名的参数。如果没有提供“基类”，则使用词典中的标签。
+
+加载模型后，它读取一行实体（可以是一个单词或一个句子/文档），并输出预测。
+
+
+### 最近相邻量查询
+
+检查训练好的嵌入模型质量的另一种简单方法是检查实体的最近相邻量。 要构建和使用该实用程序功能，请运行以下命令：
+
+    make query_nn
+    ./query_nn <model> [k]
+
+
+其中 <model> 指定一个受过训练的 StarSpace 模型，可选的 K（ 默认值是 5 ） 指定要搜索的最近相邻量。
+
+加载模型后，它读取一行实体（可以是一个单词或一个句子/文档），并在嵌入空间输出最近的实体。
