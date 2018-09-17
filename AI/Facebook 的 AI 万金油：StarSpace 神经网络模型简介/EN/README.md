@@ -116,3 +116,100 @@ trainMode = 4:
 trainMode = 5:
 - Each example contains only input. At training time, it generates multiple training examples: each feature from input is picked as the RHS, and other features surronding it (up to distance ws) are picked as the LHS.
 - Use case: learn word embeddings in unsupervised way.
+
+
+## Example use cases
+
+### TagSpace word / tag embeddings
+
+Setting: Learning the mapping from a short text to relevant hashtags, e.g. as in this paper. This is a classical classification setting.
+
+Model: the mapping learnt goes from bags of words to bags of tags, by learning an embedding of both. For instance, the input “restaurant has great food <\tab> #restaurant <\tab> #yum” will be translated into the following graph. (Nodes in the graph are entities for which embeddings will be learned, and edges in the graph are relationships between the entities).
+
+![](https://user-gold-cdn.xitu.io/2018/2/14/1619267e5b2c272d?imageslim)
+
+Input file format:
+
+    restaurant has great food #yum #restaurant
+
+
+Command:
+
+    $./starspace train -trainFile input.txt -model tagspace -label '#'
+
+Example scripts:
+
+We apply the model to the problem of text classification on AG's News Topic Classification Dataset. Here our tags are news article categories, and we use the hits@1 metric to measure classification accuracy. This example script downloads the data and run StarSpace model on it under the examples directory:
+
+    $bash examples/classification_ag_news.sh
+
+
+## PageSpace user / page embeddings
+
+Setting: On Facebook, users can fan (follow) public pages they're interested in. When a user fans a page, the user can receive all things the page posts on Facebook. We want to learn page embeddings based on users' fanning data, and use it to recommend users new pages they might be interested to fan (follow). This setting can be generalized to other recommendation problems: for instance, embedding and recommending movies to users based on movies watched in the past; embed and recommend restaurants to users based on the restaurants checked-in by users in the past, etc.
+
+Model： Users are represented as the bag of pages that they follow (fan). That is, we do not learn a direct embedding of users, instead, each user will have an embedding which is the average embedding of pages fanned by the user. Pages are embedded directly (with a unique feature in the dictionary). This setup can work better in the case where the number of users is larger than the number of pages, and the number of pages fanned by each user is small on average (i.e. the edges between user and page is relatively sparse). It also generalizes to new users without retraining. However, the more traditional recommendation setting can also be used.
+
+![](https://user-gold-cdn.xitu.io/2018/2/14/16192685d36b0062?imageslim)
+
+Each user is represented by the bag-of-pages fanned by the user, and each training example is a single user.
+
+Input file format:
+
+    page_1 page_2 ... page_M
+
+At training time, at each step for each example (user), one random page is selected as a label and the rest of bag of pages are selected as input. This can be achieved by setting flag -trainMode to 1.
+
+
+Command:
+
+    $./starspace train -trainFile input.txt -model pagespace -label 'page' -trainMode 1
+
+Example scripts:
+
+To provide an example script, we choose the Last.FM (http://www.lastfm.com) dataset from HectRec 2011 and model it similarly as in the PageSpace setting: user is represented by the bag-of-artitsts listened by the user.
+
+    $bash examples/recomm_user_artists.sh
+
+## DocSpace document recommendation
+
+Setting: We want to embed and recommend web documents for users based on their historical likes/click data.
+
+Model: Each document is represented by a bag-of-words of the document. Each user is represented as a (bag of) the documents that they liked/clicked in the past. At training time, at each step one random document is selected as the label and the rest of the bag of documents are selected as input.
+
+![](https://user-gold-cdn.xitu.io/2018/2/14/1619268ba6ede311?imageslim)
+
+Input file format:
+
+    roger federer loses <tab> venus williams wins <tab> world series ended
+    i love cats <tab> funny lolcat links <tab> how to be a petsitter  
+
+
+Each line is a user, and each document (documents separated by tabs) are documents that they liked. So the first user likes sports, and the second is interested in pets in this case.
+
+
+### Command:
+
+    ./starspace train -trainFile input.txt -model docspace -trainMode 1 -fileFormat labelDoc
+
+### GraphSpace: Link Prediction in Knowledge Bases
+
+Setting: Learning the mapping between entities and relations in Freebase. In freebase, data comes in the format
+
+    (head_entity, relation_type, tail_entity)
+
+Performing link prediction can be formalized as filling in incomplete triples like
+
+
+    (head_entity, relation_type, ?) or (?, relation_type, tail_entity)
+
+Model: We learn the embeddings of all entities and relation types. For each realtion_type, we learn two embeddings: one for predicting tail_entity given head_entity, one for predicting head_entity given tail_entity.
+
+![](https://user-gold-cdn.xitu.io/2018/2/14/16192696723931a9?imageslim)
+
+
+Example scripts:
+
+This example script downloads the Freebase15k data from here and runs the StarSpace model on it:
+
+    $bash examples/multi_relation_example.sh
