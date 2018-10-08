@@ -72,3 +72,266 @@ Xi 的可能取值构成的可数集合 S 称为马尔可夫链状态空间。�
 
 窍门：可以看看这个网站给出的马尔可夫链的可视化解释。
 
+
+### 用 Python 实现马尔可夫链
+
+我们用 Python 来实现一下上面这个例子。当然实际使用的库实现的马尔可夫链的效率会高得多，这里还是给出实例代码帮助你入门……
+
+先 import 用到的库。
+
+
+    import numpy as np
+    import random as rm
+
+
+然后定义状态及其概率，也就是转移矩阵。要记得，因为有三个状态，矩阵是 3 X 3 维的。此外还要定义转移路径，也可以用矩阵表示。
+
+    # 状态空间
+    states = ["Sleep","Icecream","Run"]
+
+    # 可能的事件序列
+    transitionName = [["SS","SR","SI"],["RS","RR","RI"],["IS","IR","II"]]
+
+    # 概率矩阵（转移矩阵）
+    transitionMatrix = [[0.2,0.6,0.2],[0.1,0.6,0.3],[0.2,0.7,0.1]]
+
+
+别忘了，要保证概率之和是 1。另外在写代码时多打印一些错误信息没什么不好的！
+
+    if sum(transitionMatrix[0])+sum(transitionMatrix[1])+sum(transitionMatrix[1]) != 3:
+        print("Somewhere, something went wrong. Transition matrix, perhaps?")
+    else: print("All is gonna be okay, you should move on!! ;)")
+
+
+    All is gonna be okay, you should move on!! ;)
+
+
+现在就要进入正题了。我们要用 numpy.random.choice 从可能的转移集合选出随机样本。代码中大部分参数的含义从参数名就能看出来，不过参数 p 可能比较费解。它是可选参数，可以传入样品集的概率分布，这里传入的是转移矩阵。
+
+
+
+    # 实现了可以预测状态的马尔可夫模型的函数。
+    def activity_forecast(days):
+    # 选择初始状态
+    activityToday = "Sleep"
+    print("Start state: " + activityToday)
+    # 应该记录选择的状态序列。这里现在只有初始状态。
+    activityList = [activityToday]
+    i = 0
+    # 计算 activityList 的概率
+    prob = 1
+    while i != days:
+        if activityToday == "Sleep":
+            change = np.random.choice(transitionName[0],replace=True,p=transitionMatrix[0])
+            if change == "SS":
+                prob = prob * 0.2
+                activityList.append("Sleep")
+                pass
+            elif change == "SR":
+                prob = prob * 0.6
+                activityToday = "Run"
+                activityList.append("Run")
+            else:
+                prob = prob * 0.2
+                activityToday = "Icecream"
+                activityList.append("Icecream")
+        elif activityToday == "Run":
+            change = np.random.choice(transitionName[1],replace=True,p=transitionMatrix[1])
+            if change == "RR":
+                prob = prob * 0.5
+                activityList.append("Run")
+                pass
+            elif change == "RS":
+                prob = prob * 0.2
+                activityToday = "Sleep"
+                activityList.append("Sleep")
+            else:
+                prob = prob * 0.3
+                activityToday = "Icecream"
+                activityList.append("Icecream")
+        elif activityToday == "Icecream":
+            change = np.random.choice(transitionName[2],replace=True,p=transitionMatrix[2])
+            if change == "II":
+                prob = prob * 0.1
+                activityList.append("Icecream")
+                pass
+            elif change == "IS":
+                prob = prob * 0.2
+                activityToday = "Sleep"
+                activityList.append("Sleep")
+            else:
+                prob = prob * 0.7
+                activityToday = "Run"
+                activityList.append("Run")
+        i += 1  
+    print("Possible states: " + str(activityList))
+    print("End state after "+ str(days) + " days: " + activityToday)
+    print("Probability of the possible sequence of states: " + str(prob))
+
+    # 预测 2 天后的可能状态
+    activity_forecast(2)
+
+
+    Start state: Sleep
+    Possible states: ['Sleep', 'Sleep', 'Run']
+    End state after 2 days: Run
+    Probability of the possible sequence of states: 0.12
+
+
+结果可以得到从睡觉状态开始的可能转移及其概率。进一步拓展这个函数，可以让它从睡觉状态开始，迭代上几百次，就能得到终止于特定状态的预期概率。下面改写一下 activity_forecast 函数，加一些循环……
+
+
+    def activity_forecast(days):
+    # 选择初始状态
+    activityToday = "Sleep"
+    activityList = [activityToday]
+    i = 0
+    prob = 1
+    while i != days:
+        if activityToday == "Sleep":
+            change = np.random.choice(transitionName[0],replace=True,p=transitionMatrix[0])
+            if change == "SS":
+                prob = prob * 0.2
+                activityList.append("Sleep")
+                pass
+            elif change == "SR":
+                prob = prob * 0.6
+                activityToday = "Run"
+                activityList.append("Run")
+            else:
+                prob = prob * 0.2
+                activityToday = "Icecream"
+                activityList.append("Icecream")
+        elif activityToday == "Run":
+            change = np.random.choice(transitionName[1],replace=True,p=transitionMatrix[1])
+            if change == "RR":
+                prob = prob * 0.5
+                activityList.append("Run")
+                pass
+            elif change == "RS":
+                prob = prob * 0.2
+                activityToday = "Sleep"
+                activityList.append("Sleep")
+            else:
+                prob = prob * 0.3
+                activityToday = "Icecream"
+                activityList.append("Icecream")
+        elif activityToday == "Icecream":
+            change = np.random.choice(transitionName[2],replace=True,p=transitionMatrix[2])
+            if change == "II":
+                prob = prob * 0.1
+                activityList.append("Icecream")
+                pass
+            elif change == "IS":
+                prob = prob * 0.2
+                activityToday = "Sleep"
+                activityList.append("Sleep")
+            else:
+                prob = prob * 0.7
+                activityToday = "Run"
+                activityList.append("Run")
+        i += 1    
+    return activityList
+
+    # 记录每次的 activityList
+    list_activity = []
+    count = 0
+
+    # `range` 从第一个参数开始数起，一直到第二个参数（不包含）
+    for iterations in range(1,10000):
+        list_activity.append(activity_forecast(2))
+
+    # 查看记录到的所有 `activityList`    
+    #print(list_activity)
+
+    # 遍历列表，得到所有最终状态是跑步的 activityList
+    for smaller_list in list_activity:
+    if(smaller_list[2] == "Run"):
+        count += 1
+
+    # 计算从睡觉状态开始到跑步状态结束的概率
+    percentage = (count/10000) * 100
+    print("The probability of starting at state:'Sleep' and ending at state:'Run'= " + str(percentage) + "%")
+
+
+    def activity_forecast(days):
+    # 选择初始状态
+    activityToday = "Sleep"
+    activityList = [activityToday]
+    i = 0
+    prob = 1
+    while i != days:
+        if activityToday == "Sleep":
+            change = np.random.choice(transitionName[0],replace=True,p=transitionMatrix[0])
+            if change == "SS":
+                prob = prob * 0.2
+                activityList.append("Sleep")
+                pass
+            elif change == "SR":
+                prob = prob * 0.6
+                activityToday = "Run"
+                activityList.append("Run")
+            else:
+                prob = prob * 0.2
+                activityToday = "Icecream"
+                activityList.append("Icecream")
+        elif activityToday == "Run":
+            change = np.random.choice(transitionName[1],replace=True,p=transitionMatrix[1])
+            if change == "RR":
+                prob = prob * 0.5
+                activityList.append("Run")
+                pass
+            elif change == "RS":
+                prob = prob * 0.2
+                activityToday = "Sleep"
+                activityList.append("Sleep")
+            else:
+                prob = prob * 0.3
+                activityToday = "Icecream"
+                activityList.append("Icecream")
+        elif activityToday == "Icecream":
+            change = np.random.choice(transitionName[2],replace=True,p=transitionMatrix[2])
+            if change == "II":
+                prob = prob * 0.1
+                activityList.append("Icecream")
+                pass
+            elif change == "IS":
+                prob = prob * 0.2
+                activityToday = "Sleep"
+                activityList.append("Sleep")
+            else:
+                prob = prob * 0.7
+                activityToday = "Run"
+                activityList.append("Run")
+        i += 1    
+    return activityList
+
+    # 记录每次的 activityList
+    list_activity = []
+    count = 0
+
+    # `range` 从第一个参数开始数起，一直到第二个参数（不包含）
+    for iterations in range(1,10000):
+        list_activity.append(activity_forecast(2))
+
+    # 查看记录到的所有 `activityList`    
+    #print(list_activity)
+
+    # 遍历列表，得到所有最终状态是跑步的 activityList
+    for smaller_list in list_activity:
+    if(smaller_list[2] == "Run"):
+        count += 1
+
+    # 计算从睡觉状态开始到跑步状态结束的概率
+    percentage = (count/10000) * 100
+    print("The probability of starting at state:'Sleep' and ending at state:'Run'= " + str(percentage) + "%")
+
+
+    The probability of starting at state:'Sleep' and ending at state:'Run'= 62.419999999999995%
+
+
+那么问题来了，计算得到的结果为何会趋于 62%？
+
+注意 这实际是「大数定律」在发挥作用。大数定律是概率论定律，用来说明在试验次数足够多时，可能性相同的事件发生的频率趋于一致。也就是说，随着试验次数的增加，实际比率会趋于理论或预测的概率。
+
+
