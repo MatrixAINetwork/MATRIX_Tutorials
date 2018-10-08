@@ -78,3 +78,194 @@ Also, with this clear in mind, it becomes easier to understand some important pr
 - Absorbing State: a state i is called absorbing if it is impossible to leave this state. Therefore, the state 'i' is absorbing if pii = 1 and pij = 0 for i ≠ j. If every state can reach an absorbing state, then the Markov chain is an absorbing Markov chain.
 
 Tip: if you want to also see a visual explanation of Markov chains, make sure to visit this page.
+
+
+### Markov Chains in Python
+Let's try to code the example above in Python. And although in real life, you would probably use a library that encodes Markov Chains in a much efficient manner, the code should help you get started...
+
+Let's first import some of the libraries you will use.
+
+
+    import numpy as np
+    import random as rm
+
+
+Let's now define the states and their probability: the transition matrix. Remember, the matrix is going to be a 3 X 3 matrix since you have three states. Also, you will have to define the transition paths, you can do this using matrices as well.
+
+
+    # The statespace
+    states = ["Sleep","Icecream","Run"]
+
+    # Possible sequences of events
+    transitionName = [["SS","SR","SI"],["RS","RR","RI"],["IS","IR","II"]]
+
+    # Probabilities matrix (transition matrix)
+    transitionMatrix = [[0.2,0.6,0.2],[0.1,0.6,0.3],[0.2,0.7,0.1]]
+
+
+Oh, always make sure the probabilities sum up to 1. And it doesn't hurt to leave error messages, at least when coding!
+
+
+    if sum(transitionMatrix[0])+sum(transitionMatrix[1])+sum(transitionMatrix[1]) != 3:
+        print("Somewhere, something went wrong. Transition matrix, perhaps?")
+    else: print("All is gonna be okay, you should move on!! ;)")
+
+ 
+    All is gonna be okay, you should move on!! ;)
+
+
+
+Now let's code the real thing. You will use the numpy.random.choice to generate a random sample from the set of transitions possible. While most of its arguments are self-explanatory, the p might not be. It is an optional argument that lets you enter the probability distribution for the sampling set, which is the transition matrix in this case.
+
+    # A function that implements the Markov model to forecast the state/mood.
+    def activity_forecast(days):
+        # Choose the starting state
+        activityToday = "Sleep"
+        print("Start state: " + activityToday)
+        # Shall store the sequence of states taken. So, this only has the starting state for now.
+        activityList = [activityToday]
+        i = 0
+        # To calculate the probability of the activityList
+        prob = 1
+        while i != days:
+            if activityToday == "Sleep":
+                change = np.random.choice(transitionName[0],replace=True,p=transitionMatrix[0])
+                if change == "SS":
+                    prob = prob * 0.2
+                    activityList.append("Sleep")
+                    pass
+            elif change == "SR":
+                prob = prob * 0.6
+                activityToday = "Run"
+                activityList.append("Run")
+            else:
+                prob = prob * 0.2
+                activityToday = "Icecream"
+                activityList.append("Icecream")
+        elif activityToday == "Run":
+            change = np.random.choice(transitionName[1],replace=True,p=transitionMatrix[1])
+            if change == "RR":
+                prob = prob * 0.5
+                activityList.append("Run")
+                pass
+            elif change == "RS":
+                prob = prob * 0.2
+                activityToday = "Sleep"
+                activityList.append("Sleep")
+            else:
+                prob = prob * 0.3
+                activityToday = "Icecream"
+                activityList.append("Icecream")
+        elif activityToday == "Icecream":
+            change = np.random.choice(transitionName[2],replace=True,p=transitionMatrix[2])
+            if change == "II":
+                prob = prob * 0.1
+                activityList.append("Icecream")
+                pass
+            elif change == "IS":
+                prob = prob * 0.2
+                activityToday = "Sleep"
+                activityList.append("Sleep")
+            else:
+                prob = prob * 0.7
+                activityToday = "Run"
+                activityList.append("Run")
+        i += 1  
+    print("Possible states: " + str(activityList))
+    print("End state after "+ str(days) + " days: " + activityToday)
+    print("Probability of the possible sequence of states: " + str(prob))
+
+    # Function that forecasts the possible state for the next 2 days
+    activity_forecast(2)
+
+
+    Start state: Sleep
+    Possible states: ['Sleep', 'Sleep', 'Run']
+    End state after 2 days: Run
+    Probability of the possible sequence of states: 0.12
+
+
+You get a random set of transitions possible along with the probability of it happening, starting from state: Sleep. Extend the program further to maybe iterate it for a couple of hundred times with the same starting state, you can then see the expected probability of ending at any particular state along with its probability. Let's rewrite the function activity_forecast and add a fresh set of loops to do this...
+
+
+    def activity_forecast(days):
+    # Choose the starting state
+    activityToday = "Sleep"
+    activityList = [activityToday]
+    i = 0
+    prob = 1
+    while i != days:
+        if activityToday == "Sleep":
+            change = np.random.choice(transitionName[0],replace=True,p=transitionMatrix[0])
+            if change == "SS":
+                prob = prob * 0.2
+                activityList.append("Sleep")
+                pass
+            elif change == "SR":
+                prob = prob * 0.6
+                activityToday = "Run"
+                activityList.append("Run")
+            else:
+                prob = prob * 0.2
+                activityToday = "Icecream"
+                activityList.append("Icecream")
+        elif activityToday == "Run":
+            change = np.random.choice(transitionName[1],replace=True,p=transitionMatrix[1])
+            if change == "RR":
+                prob = prob * 0.5
+                activityList.append("Run")
+                pass
+            elif change == "RS":
+                prob = prob * 0.2
+                activityToday = "Sleep"
+                activityList.append("Sleep")
+            else:
+                prob = prob * 0.3
+                activityToday = "Icecream"
+                activityList.append("Icecream")
+        elif activityToday == "Icecream":
+            change = np.random.choice(transitionName[2],replace=True,p=transitionMatrix[2])
+            if change == "II":
+                prob = prob * 0.1
+                activityList.append("Icecream")
+                pass
+            elif change == "IS":
+                prob = prob * 0.2
+                activityToday = "Sleep"
+                activityList.append("Sleep")
+            else:
+                prob = prob * 0.7
+                activityToday = "Run"
+                activityList.append("Run")
+        i += 1    
+    return activityList
+
+    # To save every activityList
+    list_activity = []
+    count = 0
+
+    # `Range` starts from the first count up until but excluding the last count
+    for iterations in range(1,10000):
+        list_activity.append(activity_forecast(2))
+
+    # Check out all the `activityList` we collected    
+    #print(list_activity)
+
+    # Iterate through the list to get a count of all activities ending in state:'Run'
+    for smaller_list in list_activity:
+    if(smaller_list[2] == "Run"):
+        count += 1
+
+    # Calculate the probability of starting from state:'Sleep' and ending at state:'Run'
+    percentage = (count/10000) * 100
+    print("The probability of starting at state:'Sleep' and ending at state:'Run'= " + str(percentage) + "%")
+
+
+    The probability of starting at state:'Sleep' and ending at state:'Run'= 62.419999999999995%
+
+
+How did we approximate towards the desired 62%?
+
+Note This is actually the "law of large numbers", which is a principle of probability that states that the frequencies of events with the same likelihood of occurrence even out, but only if there are enough trials or instances. In other words, as the number of experiments increases, the actual ratio of outcomes will converge on a theoretical or expected ratio of outcomes.
+
+
