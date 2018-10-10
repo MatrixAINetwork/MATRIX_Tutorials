@@ -253,3 +253,16 @@ scikit-learn 实现提供了 eps 和 min_samples 参数的默认值，但是你�
     plt.legend([c1, c2, c3], ['Cluster 1', 'Cluster 2', 'Noise'])
     plt.title('DBSCAN finds 2 clusters and Noise')
     plt.show()
+
+
+![](https://user-gold-cdn.xitu.io/2018/9/26/1661439f99f28696?imageslim)
+
+
+### 更多无监督技术：
+- 主成分分析 (PCA)
+- 异常检测
+- 自动编码
+- 深度信念网络
+- 赫布型学习
+- 生成式对抗网络(GANs)
+- 自组织映射
