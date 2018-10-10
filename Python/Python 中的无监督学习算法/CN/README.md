@@ -120,3 +120,136 @@ Python 中的 K 均值算法实现
     # 打印预测结果
     print(predicted_label)
     print(all_predictions)
+
+
+
+    [0]
+    [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 2 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 2 1 1 1 1 2 1 1 1 1 1 1 2 2 1 1 1 1 2 1 2 1 2 1 1 2 2 1 1 1 1 1 2 1 1 1 1 2 1 1 1 2 1 1 1 2 1 1 2]
+
+
+### 分层聚类
+
+顾名思义，分层聚类是一种构建聚类层次结构的算法。该算法从分配给自己的群集的所有数据开始。然后将两个最接近的群集合并到同一群集中。最后，当只剩下一个群集时，该算法结束。
+
+可以使用树形图显示分层聚类的完成过程。
+
+
+    # 引入模块
+    from scipy.cluster.hierarchy import linkage, dendrogram
+    import matplotlib.pyplot as plt
+    import pandas as pd
+
+    # 读入 DataFrame
+    seeds_df = pd.read_csv(
+    "https://raw.githubusercontent.com/vihar/unsupervised-learning-with-python/master/seeds-less-rows.csv")
+
+    # 从 DataFrame 中删除谷物种类，稍后再保存
+    varieties = list(seeds_df.pop('grain_variety'))
+
+    # 将测量值提取为 NumPy 数组
+    samples = seeds_df.values
+
+    """
+    使用带有 method ='complete' 关键字参数的
+    linkage()函数对样本执行分层聚类。
+    将结果合并。
+    """
+    mergings = linkage(samples, method='complete')
+
+    """
+    在合并时使用 dendrogram() 函数绘制树形图，
+    指定关键字参数 labels = varieties，leaf_rotation = 90 
+    和 leaf_font_size = 6。
+    """
+    dendrogram(mergings,
+           labels=varieties,
+           leaf_rotation=90,
+           leaf_font_size=6,
+           )
+
+    plt.show()
+
+
+![](https://user-gold-cdn.xitu.io/2018/9/26/1661439f9ac49cf2?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+
+### K 均值和分层聚类之间的差异
+
+- 分层聚类不能很好地处理大数据，但 K 均值聚类可以。这是因为 K 均值的时间复杂度是线性的，即 O(n)，而分层聚类的时间复杂度是二次的，即 O(n2)。
+- 在 K 均值聚类中，当我们从任意选择的聚类开始时，通过多次运行算法生成的结果可能会有所不同。然而在分层聚类中结果是可重现的。
+- 当群集的形状是超球形时（如 2D 中的圆圈，3D 中的球体），我们发现 K 均值工作良好。
+- K-均值不允许噪声数据，而在分层聚类中我们可以直接使用噪声数据集进行聚类。
+
+#### t-SNE聚类
+它是可视化的无监督学习方法之一。t-SNE 代表 t 分布的随机嵌入邻域。它将高维空间映射到可以可视化的 2 维或 3 维空间。具体地，它通过二维或三维点对每个高维对象建模，使得相似对象由附近点建模，而非相似对象由远点以高概率建模。
+
+
+##### 用于鸢尾花数据集的 Python 中的 t-SNE 聚类实现
+
+
+    # 引入模块
+    from sklearn import datasets
+    from sklearn.manifold import TSNE
+    import matplotlib.pyplot as plt
+
+    # 加载数据集
+   iris_df = datasets.load_iris()
+
+   # 定义模型
+    model = TSNE(learning_rate=100)
+
+    # 拟合模型
+    transformed = model.fit_transform(iris_df.data)
+
+    # 绘制二维的 t-Sne
+    x_axis = transformed[:, 0]
+    y_axis = transformed[:, 1]
+
+    plt.scatter(x_axis, y_axis, c=iris_df.target)
+    plt.show()
+
+![](https://user-gold-cdn.xitu.io/2018/9/26/1661439f93860625?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
+
+紫色：Setosa，绿色：Versicolor，黄色：Virginica
+
+这里，由于鸢尾花数据集具有四个特征（4d），因此它被转换并以二维图形表示。类似地，t-SNE 模型可以应用于具有 n 个特征的数据集。
+
+### DBSCAN 聚类
+DBSCAN（具有噪声的基于密度的聚类方法）是一种流行的聚类算法，用于替代预测分析中的 K 均值。它不需要输入群集的数量就能运行。但是，你必须调整另外两个参数。
+
+scikit-learn 实现提供了 eps 和 min_samples 参数的默认值，但是你通常需要调整这些参数。eps 参数是要在同一邻域中考虑的两个数据点之间的最大距离。min_samples 参数是邻域中被视为群集的数据点的最小数量。
+
+
+#### Python 中的 DBSCAN 聚类
+
+
+    # 引入模块
+    from sklearn.datasets import load_iris
+    import matplotlib.pyplot as plt
+    from sklearn.cluster import DBSCAN
+    from sklearn.decomposition import PCA
+
+    # 加载数据集
+    iris = load_iris()
+
+    # 声明模型
+    dbscan = DBSCAN()
+
+    # 拟合
+    dbscan.fit(iris.data)
+
+    # 使用PCA进行转换
+    pca = PCA(n_components=2).fit(iris.data)
+    pca_2d = pca.transform(iris.data)
+
+    # 基于类别进行绘制
+    for i in range(0, pca_2d.shape[0]):
+    if dbscan.labels_[i] == 0:
+        c1 = plt.scatter(pca_2d[i, 0], pca_2d[i, 1], c='r', marker='+')
+    elif dbscan.labels_[i] == 1:
+        c2 = plt.scatter(pca_2d[i, 0], pca_2d[i, 1], c='g', marker='o')
+    elif dbscan.labels_[i] == -1:
+        c3 = plt.scatter(pca_2d[i, 0], pca_2d[i, 1], c='b', marker='*')
+
+    plt.legend([c1, c2, c3], ['Cluster 1', 'Cluster 2', 'Noise'])
+    plt.title('DBSCAN finds 2 clusters and Noise')
+    plt.show()
