@@ -109,3 +109,102 @@ P(Survival) 很容易计算，而我们构建分类器也不需要用到 P(f1,�
 
 这个分类器的正确率为 80.95%。
 
+
+## 使用单个特征说明
+
+让我们试着只使用票价信息来约束分类器。下面我们计算 P(Survival = 1) 和 P(Survival = 0) 的概率：
+
+    mean_survival=np.mean(X_train["Survived"])
+    mean_not_survival=1-mean_survival
+    print("Survival prob = {:03.2f}%, Not survival prob = {:03.2f}%"
+          .format(100*mean_survival,100*mean_not_survival))
+
+
+
+> Survival prob = 39.50%, Not survival prob = 60.50%
+
+
+然后，根据式 3，我们只需要得出概率分布函数 P(fare| Survival = 0) 和 P(fare| Survival = 1)。我们选用高斯朴素贝叶斯分类器，因此，必须假设数据按高斯分布
+
+![](https://user-gold-cdn.xitu.io/2018/8/28/1657fc94c9f04986?imageslim)
+
+
+式 5：高斯公式（σ：标准差 / μ：均值）
+
+然后，我们需要算出是否生还值不同的情况下，票价数据集的均值和标准差。我们得到以下结果：
+
+
+    mean_fare_survived = np.mean(X_train[X_train["Survived"]==1]["Fare"])
+    std_fare_survived = np.std(X_train[X_train["Survived"]==1]["Fare"])
+    mean_fare_not_survived = np.mean(X_train[X_train["Survived"]==0]["Fare"])
+    std_fare_not_survived = np.std(X_train[X_train["Survived"]==0]["Fare"])
+
+    print("mean_fare_survived = {:03.2f}".format(mean_fare_survived))
+    print("std_fare_survived = {:03.2f}".format(std_fare_survived))
+    print("mean_fare_not_survived = {:03.2f}".format(mean_fare_not_survived))
+    print("std_fare_not_survived = {:03.2f}".format(std_fare_not_survived))
+
+
+    mean_fare_survived = 54.75
+    std_fare_survived = 66.91
+    mean_fare_not_survived = 24.61
+    std_fare_not_survived = 36.29
+
+
+让我们看看关于生还和未生还的直方图的结果分布：
+
+
+![](https://user-gold-cdn.xitu.io/2018/8/28/1657fc94d59706ff?imageslim)
+
+
+图 1：各个是否生还值的票价直方图和高斯分布（缩放等级并不对应）
+
+可以发现，分布与数据集并没有很好地拟合。在实现模型之前，最好验证特征分布是否遵循上述三种模型中的一种。如果连续特征不具有正态分布，则应使用变换或不同的方法将其转换成正态分布。为了便于说明，这我们将分布看作是正态的。应用式 1 贝叶斯定理，可得以下这个分类器：
+
+![](https://user-gold-cdn.xitu.io/2018/8/28/1657fc9513bf262e?imageslim)
+
+
+图 2：高斯分类器
+
+如果票价分类器的值超过 78（classifier(Fare) ≥ ~78），则 P(fare| Survival = 1) ≥ P(fare| Survival = 0)，我们将这个人归类为生还。否则我们就将他归为未生还。我们得到了一个正确率为 64.15% 的分类器。
+如果我们在同一数据集上训练 Sklearn 高斯朴素贝叶斯分类器，将会得到完全相同的结果：
+
+
+    from sklearn.naive_bayes import GaussianNB
+    gnb = GaussianNB()
+    used_features =["Fare"]
+    y_pred = gnb.fit(X_train[used_features].values, X_train["Survived"]).predict(X_test[used_features])
+    print("Number of mislabeled points out of a total {} points : {}, performance {:05.2f}%"
+      .format(
+          X_test.shape[0],
+          (X_test["Survived"] != y_pred).sum(),
+          100*(1-(X_test["Survived"] != y_pred).sum()/X_test.shape[0])
+    ))
+    print("Std Fare not_survived {:05.2f}".format(np.sqrt(gnb.sigma_)[0][0]))
+    print("Std Fare survived: {:05.2f}".format(np.sqrt(gnb.sigma_)[1][0]))
+    print("Mean Fare not_survived {:05.2f}".format(gnb.theta_[0][0]))
+    print("Mean Fare survived: {:05.2f}".format(gnb.theta_[1][0]))
+
+
+    Number of mislabeled points out of a total 357 points: 128, performance 64.15%
+    Std Fare not_survived 36.29
+    Std Fare survived: 66.91
+    Mean Fare not_survived 24.61
+    Mean Fare survived: 54.75
+
+
+## 朴素贝叶斯分类器的优缺点
+
+优点：
+
+- 计算迅速
+- 实现简单
+- 在小数据集上表现良好
+- 在高维度数据上表现良好
+- 即使朴素假设没有完全满足，也能表现良好。在许多情况下，建立一个好的分类器只需要近似的数据就够了。
+
+缺点：
+
+- 需要移除相关特征，因为它们会在模型中被计算两次，这将导致该特征的重要性被高估。
+- 如果测试集中，某分类变量的一个类别没有在训练集中出现过，那么模型会把这种情况设为零概率。它将无法做出预测。这通常被称为『零位频率』。我们可以使用平滑技术来解决这个问题。最简单的平滑技术之一称为拉普拉斯平滑。当你训练一个朴素贝叶斯分类器时，Sklearn 会默认使用拉普拉斯平滑算法。
+
