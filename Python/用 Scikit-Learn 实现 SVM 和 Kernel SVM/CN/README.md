@@ -125,3 +125,70 @@ SVC 类的 predict 方法可以用来预测新的数据的类别。代码如下�
     y_pred = svclassifier.predict(X_test)
 
 
+### 算法评价
+
+混淆矩阵、精度、召回率和 F1 是分类任务最常用的一些评价指标。Scikit-Learn 的 metrics 模块中提供了 classification_report 和confusion_matrix 等方法，这些方法可以快速的计算这些评价指标。
+
+
+下面是计算评价指标的代码：
+
+    from sklearn.metrics import classification_report, confusion_matrix
+    print(confusion_matrix(y_test,y_pred))
+    print(classification_report(y_test,y_pred))
+
+
+### 结果
+
+下面是评价结果：
+
+    [[152    0]
+     [  1  122]]
+              precision   recall   f1-score   support
+
+           0       0.99     1.00       1.00       152
+           1       1.00     0.99       1.00       123
+
+    avg / total        1.00     1.00       1.00       275
+
+
+从上面的评价结果中我们可以发现 SVM 比决策树稍微的要好。SVM 只有 1% 的错分类而决策树有 4%。
+
+### Kernel SVM
+在上面的章节我们看到了如何使用简单 SVM 算法在线性可分数据上找到决策边界。然而，当数据不是线性可分的时候如图 3，直线就不能再作为决策边界了。
+
+![](https://user-gold-cdn.xitu.io/2018/8/24/1656b52b13c53a83?imageslim)
+
+
+Fig 3: 非线性可分数据
+
+对非线性可分的数据集，简单的 SVM 算法就不再适用。一种改进的 SVM 叫做 Kernel SVM 可以用来解决非线性可分数据的分类问题。
+
+从根本上说，kernel SVM 把在低维空间中线性不可分数据映射成在高维空间中线性可分的数据, 这样不同类别的数据点就分布在了不同的维度上。同样，这里涉及到复杂的数学，但是如果你只是使用 SVM 完全不用担心。我们可以很简单的使用 Python 的 Scikit-Learn 库来实现和使用 kernel SVM。
+
+
+### 使用 Scikit-Learn 实现 Kernel SVM
+
+
+和实现简单的 SVM 一样。在这部分我们使用有名的鸢尾花数据集，依照植物下面的四个属性去预测它属于哪个分类：萼片宽度，萼片长度，花瓣宽度和花瓣长度。
+
+数据可以从下面的链接下：
+
+[archive.ics.uci.edu/ml/datasets…](https://link.juejin.im/?target=https%3A%2F%2Farchive.ics.uci.edu%2Fml%2Fdatasets%2Firis4)
+
+剩下的步骤就是典型的机器学习步骤在训练 Kernel SVM 之前我们需要一些简单说明。
+
+#### 导入库
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import pandas as pd
+
+#### 导入数据
+
+    url = "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"
+
+    # Assign colum names to the dataset
+    colnames = ['sepal-length', 'sepal-width', 'petal-length', 'petal-width', 'Class']
+
+    # Read dataset to pandas dataframe
+    irisdata = pd.read_csv(url, names=colnames)
