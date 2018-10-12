@@ -37,7 +37,7 @@ SVM 通过最大化所有类中的数据点到决策边界的最小距离的方�
 
 我们的任务是通过四个属性来判断纸币是不是真的，四个属性是小波变换图像的偏度、图像的方差、图像的熵和图像的曲率。我们将使用 SVM 解决这个二分类问题。剩下部分是标准的机器学习流程。
 
-导入库
+#### 导入库
 
 下面的代码导入所有需要的库：
 
@@ -46,3 +46,19 @@ SVM 通过最大化所有类中的数据点到决策边界的最小距离的方�
     import numpy as np
     import matplotlib.pyplot as plt
     %matplotlib inline
+
+
+#### 导入数据
+
+
+数据可以从下面的链接下载：
+
+[drive.google.com/file/d/13nw…](https://link.juejin.im/?target=https%3A%2F%2Fdrive.google.com%2Ffile%2Fd%2F13nw-uRXPY8XIZQxKRNZ3yYlho-CYm_Qt%2Fview)
+
+数据的详细信息可以参考下面的链接：
+
+[archive.ics.uci.edu/ml/datasets…](https://link.juejin.im/?target=https%3A%2F%2Farchive.ics.uci.edu%2Fml%2Fdatasets%2Fbanknote%2Bauthentication)
+
+从 Google drive 链接下载数据并保存在你本地。这个例子中数据集保存在我 Windows 电脑的 D 盘 “Datasets” 文件夹下的 CSV 文件里。下面的代码从文件路径中读取数据。你可以根据文件在你自己电脑上的路径修改。
+
+读取 CSV 文件的最简单方法是使用 pandas 库中的 read_csv 方法。下面的代码读取银行纸币数据记录到 pandas 的  dataframe:
