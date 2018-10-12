@@ -192,3 +192,139 @@ Fig 3: 非线性可分数据
 
     # Read dataset to pandas dataframe
     irisdata = pd.read_csv(url, names=colnames)
+
+
+#### 预处理
+
+    X = irisdata.drop('Class', axis=1)
+    y = irisdata['Class']
+
+
+#### 训练和测试集划分
+
+    from sklearn.model_selection import train_test_split
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.20)
+
+
+### 算法训练
+
+同样使用 Scikit-Learn 的 svm 模块中的 SVC 类。区别在于类 SVC 的核函数类型参数的值不一样。在简单 SVM 中我们使用的核函数类型是 “linear”。然而，kernel SVM 你可以使用 高斯、多项式、sigmoid或者其他可计算的核。我们将实现多项式、高斯和 sigmoid 核并检验哪一个表现更好。
+
+#### 多项式核
+在多项式核的情况下，你开需要传递一个叫degree 的参数给SVC 类。这个参数是多项式的次数。看下面的代码如何实现多项式核实现 kernel SVM：
+ 
+    from sklearn.svm import SVC
+    svclassifier = SVC(kernel='poly', degree=8)
+    svclassifier.fit(X_train, y_train)
+
+
+#### 做预测
+现在我们已经训练好了算法，下一步是在测试集上做预测。
+
+运行下面的代码来实现：
+
+    y_pred = svclassifier.predict(X_test)
+
+
+### 算法评价
+
+通常机器学习算法的最后一步是评价多项式核。运行下面的代码。
+
+    from sklearn.metrics import classification_report, confusion_matrix
+    print(confusion_matrix(y_test, y_pred))
+    print(classification_report(y_test, y_pred))
+
+
+使用多项式核的 kernel SVM 的输出如下：
+
+    [[11  0  0]
+     [ 0 12  1]
+     [ 0  0  6]]
+                     precision   recall   f1-score   support
+
+        Iris-setosa       1.00     1.00       1.00        11
+    Iris-versicolor       1.00     0.92       0.96        13  
+     Iris-virginica       0.86     1.00       0.92         6
+
+        avg / total       0.97     0.97       0.97        30
+
+
+#### 高斯核
+
+看一眼我们是如何使用高斯核实现 kernel SVM 的：
+
+    from sklearn.svm import SVC
+    svclassifier = SVC(kernel='rbf')
+    svclassifier.fit(X_train, y_train)
+
+使用高斯核，你必须指定类 SVC 的核参数额值为 “rbf”。
+
+
+#### 预测和评价
+
+
+    y_pred = svclassifier.predict(X_test)
+
+    from sklearn.metrics import classification_report, confusion_matrix
+    print(confusion_matrix(y_test, y_pred))
+    print(classification_report(y_test, y_pred))
+
+使用高斯核的输出：
+
+
+    [[11  0  0]
+     [ 0 13  0]
+     [ 0  0  6]]
+                     precision   recall   f1-score   support
+
+        Iris-setosa       1.00     1.00       1.00        11
+    Iris-versicolor       1.00     1.00       1.00        13  
+     Iris-virginica       1.00     1.00       1.00         6
+
+        avg / total       1.00     1.00       1.00        30
+
+
+#### Sigmoid 核
+
+最后，让我们使用 sigmoid 核实现 Kernel SVM。看下面的代码
+
+    from sklearn.svm import SVC
+    svclassifier = SVC(kernel='sigmoid')
+    svclassifier.fit(X_train, y_train)
+
+
+使用 sigmoid 核需要指定 SVC 类的参数 kernel 的值为 “sigmoid”。
+
+
+#### 预测和评价
+
+    y_pred = svclassifier.predict(X_test)
+
+
+    from sklearn.metrics import classification_report, confusion_matrix
+    print(confusion_matrix(y_test, y_pred))
+    print(classification_report(y_test, y_pred))
+
+
+使用 Sigmoid 核的输出如下：
+
+
+    [[ 0  0 11]
+     [ 0  0 13]
+     [ 0  0  6]]
+                     precision   recall   f1-score   support
+
+        Iris-setosa       0.00     0.00       0.00        11
+    Iris-versicolor       0.00     0.00       0.00        13  
+     Iris-virginica       0.20     1.00       0.33         6
+
+        avg / total       0.04     0.20       0.07        30
+
+
+### 对比核的表现
+
+对比发现 sigmoid 核是最差的。因为 sigmoid 返回 0 和 1 两个值，sigmoid 核更适合二分类问题。而我们的例子中有三个类别。
+
+
+高斯核与多项式核有差不多的表现。高斯核预测准确率 100% 多项式核也只有 1% 的误差。高斯核表现稍好。然而没有硬性的规则来评价哪种核函数在任何场景下都更好。只能通过在测试集上的测试结果来选择哪一个核在你的数据集上表现更好。
+
