@@ -208,3 +208,65 @@ t-SNE Clustering Implementation in Python for Iris Dataset.
 
     plt.scatter(x_axis, y_axis, c=iris_df.target)
     plt.show()
+
+![](https://cdn-images-1.medium.com/max/1600/1*zFroZYrm97bnZxfv4nl-2Q.png)
+
+Violet: Setosa, Green: Versicolor, Yellow: Virginica
+
+
+Here as the Iris dataset has four features(4d) it is transformed and represented in two dimensional figure. Similarly t-SNE model can be applied to a dataset which has n-features.
+
+
+### DBSCAN Clustering
+
+DBSCAN (Density-Based Spatial Clustering of Applications with Noise) is a popular clustering algorithm used as an replacement to K-means in predictive analytics. It doesn’t require that you input the number of clusters in order to run. But in exchange, you have to tune two other parameters.
+
+The scikit-learn implementation provides a default for the eps and min_samples parameters, but you’re generally expected to tune those. The eps parameter is the maximum distance between two data points to be considered in the same neighborhood. The min_samples parameter is the minimum amount of data points in a neighborhood to be considered a cluster.
+
+DBSCAN Clustering in Python
+
+    # Importing Modules
+    from sklearn.datasets import load_iris
+    import matplotlib.pyplot as plt
+    from sklearn.cluster import DBSCAN
+    from sklearn.decomposition import PCA
+
+    # Load Dataset
+    iris = load_iris()
+
+    # Declaring Model
+    dbscan = DBSCAN()
+
+    # Fitting
+    dbscan.fit(iris.data)
+
+    # Transoring Using PCA
+    pca = PCA(n_components=2).fit(iris.data)
+    pca_2d = pca.transform(iris.data)
+
+    # Plot based on Class
+    for i in range(0, pca_2d.shape[0]):
+        if dbscan.labels_[i] == 0:
+            c1 = plt.scatter(pca_2d[i, 0], pca_2d[i, 1], c='r', marker='+')
+        elif dbscan.labels_[i] == 1:
+            c2 = plt.scatter(pca_2d[i, 0], pca_2d[i, 1], c='g', marker='o')
+        elif dbscan.labels_[i] == -1:
+            c3 = plt.scatter(pca_2d[i, 0], pca_2d[i, 1], c='b', marker='*')
+
+    plt.legend([c1, c2, c3], ['Cluster 1', 'Cluster 2', 'Noise'])
+    plt.title('DBSCAN finds 2 clusters and Noise')
+    plt.show()
+
+
+![](https://cdn-images-1.medium.com/max/1600/1*mEW-43TlDuSS3dwbhxlxRg.png)
+
+
+### More Unsupervised Techniques:
+
+- Principal Component Analysis (PCA)
+- Anomaly detection
+- Autoencoders
+- Deep Belief Nets
+- Hebbian Learning
+- Generative Adversarial Networks(GANs)
+- Self-Organizing maps
