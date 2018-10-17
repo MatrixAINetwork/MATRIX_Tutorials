@@ -57,3 +57,46 @@ Airflow 将依靠 RabbitMQ 的帮助来跟踪其作业。下面安装 Erlang，�
         pyhive \
         requests \
         xlsxwriter
+
+### 配置 Jupyter Notebook
+
+
+我将为 Jupyter 创建一个文件夹来存储其配置，然后为服务器设置密码。如果不设置密码，您就会获得一个冗长的 URL，其中包含用于访问 Jupyter 网页界面的密钥。每次启动 Jupyter Notebook 时，密钥都会更新。
+
+    $ mkdir -p ~/.jupyter/
+    $ jupyter notebook password
+
+
+Jupyter Notebook 支持用户界面主题。以下命令将主题设置为 Chesterish。
+
+    $ jt -t chesterish
+
+
+下面命令列出当前安装的主题。内置的主题在 GitHub上都有屏幕截图。
+
+    $ jt -l
+
+要返回默认主题，请运行以下命令。
+
+    $ jt -r
+
+
+### 通过 Jupyter Notebook 查询 Spark
+
+首先确保您运行着 Hive 的 Metastore、Spark 的 Master ＆ Slaves 服务，以及 Presto 的服务端。以下是启动这些服务的命令。
+
+    $ hive --service metastore &
+    $ sudo /opt/presto/bin/launcher start
+    $ sudo /opt/spark/sbin/start-master.sh
+    $ sudo /opt/spark/sbin/start-slaves.sh
+
+
+下面将启动 Jupyter Notebook，以便您可以与 PySpark 进行交互，PySpark 是 Spark 的基于 Python 的编程接口。
+
+    $ PYSPARK_DRIVER_PYTHON=ipython \
+        PYSPARK_DRIVER_PYTHON_OPTS="notebook
+            --no-browser
+            --ip=0.0.0.0
+            --NotebookApp.iopub_data_rate_limit=100000000" \
+        pyspark \
+        --master spark://ubuntu:7077
