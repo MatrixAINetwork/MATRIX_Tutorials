@@ -25,3 +25,13 @@ Airflow 和 Jupyter Notebook 可以很好地协同工作，您可以使用 Airfl
         python \
         python-pip \
         virtualenv
+
+Airflow 将依靠 RabbitMQ 的帮助来跟踪其作业。下面安装 Erlang，这是编写 RabbitMQ 的语言。
+
+    $ echo "deb http://binaries.erlang-solutions.com/debian xenial contrib" | \
+        sudo tee /etc/apt/sources.list.d/erlang.list
+    $ wget -O - http://binaries.erlang-solutions.com/debian/erlang_solutions.asc | \
+        sudo apt-key add -
+    $ sudo apt update
+    $ sudo apt install esl-erlang
+
