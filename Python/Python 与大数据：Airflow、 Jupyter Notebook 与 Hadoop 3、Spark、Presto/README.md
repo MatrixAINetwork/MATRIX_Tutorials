@@ -35,3 +35,25 @@ Airflow 将依靠 RabbitMQ 的帮助来跟踪其作业。下面安装 Erlang，�
     $ sudo apt update
     $ sudo apt install esl-erlang
 
+下面安装 RabbitMQ。
+
+    $ echo "deb https://dl.bintray.com/rabbitmq/debian xenial main" | \
+        sudo tee /etc/apt/sources.list.d/bintray.rabbitmq.list
+    $ wget -O- https://www.rabbitmq.com/rabbitmq-release-signing-key.asc | \
+        sudo apt-key add -
+    $ sudo apt update
+    $ sudo apt install rabbitmq-server
+
+下面将安装要使用的 Python 上的依赖项和应用程序。
+
+    $ virtualenv .notebooks
+    $ source .notebooks/bin/activate
+    $ pip install \
+        apache-airflow \
+        celery \
+        cryptography \
+        jupyter \
+        jupyterthemes \
+        pyhive \
+        requests \
+        xlsxwriter
