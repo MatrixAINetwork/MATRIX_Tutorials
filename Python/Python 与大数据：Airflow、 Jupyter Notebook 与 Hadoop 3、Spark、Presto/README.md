@@ -100,3 +100,32 @@ Jupyter Notebook 支持用户界面主题。以下命令将主题设置为 Chest
             --NotebookApp.iopub_data_rate_limit=100000000" \
         pyspark \
         --master spark://ubuntu:7077
+
+
+请注意，上面的 master 的 URL 以 ubuntu 为主机名。此主机名是 Spark Master 服务端绑定的主机名。如果无法连接到 Spark，请检查 Spark Master 服务端的日志，查找它已选择绑定的主机名，因为它不接受寻址其他主机名的连接。这可能会令人困惑，因为您通常会期望像 localhost 这样的主机名无论如何都能正常工作。
+
+
+运行 Jupyter Notebook 服务后，用下面命令打开网页界面。
+
+
+    $ open http://localhost:8888/
+
+
+系统将提示您输入为 Jupyter Notebook 设置的密码。在右上角输入后，您可以从下拉列表中创建新的笔记本。我们感兴趣的两种笔记本类型是 Python 和终端。终端笔记本使用您启动 Jupyter Notebook 的 UNIX 帐户为您提供 shell 访问权限。而我将使用的是 Python 笔记本。
+
+启动 Python 笔记本后，将以下代码粘贴到单元格中，它将通过 Spark 查询数据。调整查询以使用您在安装中创建的数据集。
+
+
+    cab_types = sqlContext.sql("""
+     SELECT cab_type, COUNT(*)
+     FROM trips_orc
+     GROUP BY cab_type
+    """)
+
+    cab_types.take(2)
+
+
+这就是上面查询的输出结果。只返回了一条记录，包括两个字段。
+
+
+    [Row(cab_type=u'yellow', count(1)=20000000)]
