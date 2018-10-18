@@ -129,3 +129,32 @@ Jupyter Notebook 支持用户界面主题。以下命令将主题设置为 Chest
 
 
     [Row(cab_type=u'yellow', count(1)=20000000)]
+
+
+### 通过 Jupyter Notebook 查询 Presto
+
+在前面用来查询 Spark 的笔记本中，也可以查询 Presto。某些 Presto 查询的性能可能超过 Spark，趁手的是这两者可以在同一个笔记本中进行切换。在下面的示例中，我使用 Dropbox 的 PyHive 库来查询 Presto。
+
+
+
+    from pyhive import presto
+
+    cursor = presto.connect('0.0.0.0').cursor()
+    cursor.execute('SELECT * FROM trips_orc LIMIT 10')
+    cursor.fetchall()
+
+
+这是上述查询的部分输出。
+
+
+    [(451221840,
+      u'CMT',
+      u'2011-08-23 21:03:34.000',
+      u'2011-08-23 21:21:49.000',
+      u'N',
+      1,
+      -74.004655,
+      40.742162,
+      -73.973489,
+      40.792922,
+    ...
