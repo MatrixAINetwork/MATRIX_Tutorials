@@ -158,3 +158,31 @@ Jupyter Notebook 支持用户界面主题。以下命令将主题设置为 Chest
       -73.973489,
       40.792922,
     ...
+
+
+### 启动 Airflow
+
+
+下面将创建一个 ~/airflow 文件夹，设置一个用于存储在网页界面上设置的 Airflow 的状态和配置集的 SQLite 3 数据库，升级配置模式并为 Airflow 将要运行的 Python 作业代码创建一个文件夹。
+
+
+    $ cd ~
+    $ airflow initdb
+    $ airflow upgradedb
+    $ mkdir -p ~/airflow/dags
+
+
+默认情况下，Presto、Spark 和 Airflow 的网页界面都使用 TCP 8080 端口。如果您先启动了 Spark，Presto 就将无法启动。但如果您是在 Presto 之后启动 Spark，那么 Presto 将在 8080 上启动，而 Spark Master 服务端则会使用 8081，如果仍被占用，会继续尝试更高端口，直到它找到一个空闲的端口。之后， Spark 将为 Spark Worker 的网页界面选择更高的端口号。这种重叠通常不是问题，因为在生产设置中这些服务通常存在于不同的机器上。
+
+
+因为此安装中使用了 8080 - 8082 的 TCP 端口，我将在端口 8083 上启动 Airflow 的网页界面。
+
+
+    $ airflow webserver --port=8083 &
+
+
+我经常使用以下命令之一来查看正在使用的网络端口。
+
+    $ sudo lsof -OnP | grep LISTEN
+    $ netstat -tuplen
+    $ ss -lntu
