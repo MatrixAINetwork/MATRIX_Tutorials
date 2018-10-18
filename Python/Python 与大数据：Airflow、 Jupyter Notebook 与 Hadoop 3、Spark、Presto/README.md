@@ -186,3 +186,26 @@ Jupyter Notebook 支持用户界面主题。以下命令将主题设置为 Chest
     $ sudo lsof -OnP | grep LISTEN
     $ netstat -tuplen
     $ ss -lntu
+
+
+Airflow 的 Celery 代理和作业结果的存储都默认使用 MySQL。这里改为使用 RabbitMQ。
+
+    $ vi ~/airflow/airflow.cfg
+
+
+找到并编辑以下设置。
+
+    broker_url = amqp://airflow:airflow@localhost:5672/airflow
+
+    celery_result_backend = amqp://airflow:airflow@localhost:5672/airflow
+
+上面使用了 airflow 作为用户名和密码连接到 RabbitMQ。账号密码可以随意自定。
+
+下面将为 RabbitMQ 配置上述账号密码，以便它能访问 Airflow 虚拟主机。
+
+
+    $ sudo rabbitmqctl add_vhost airflow
+    $ sudo rabbitmqctl add_user airflow airflow
+    $ sudo rabbitmqctl set_user_tags airflow administrator
+    $ sudo rabbitmqctl set_permissions -p airflow airflow ".*" ".*" ".*"
+
