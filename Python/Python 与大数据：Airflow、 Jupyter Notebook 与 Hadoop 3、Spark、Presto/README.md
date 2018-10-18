@@ -209,3 +209,78 @@ Airflow 的 Celery 代理和作业结果的存储都默认使用 MySQL。这里�
     $ sudo rabbitmqctl set_user_tags airflow administrator
     $ sudo rabbitmqctl set_permissions -p airflow airflow ".*" ".*" ".*"
 
+
+
+### 将 Airflow 连接到 Presto
+
+下面将打开 Airflow 网页界面。
+
+    $ open http://localhost:8083/
+
+
+打开 Airflow 网页界面后，单击顶部的 “Admin” 导航菜单，然后选择 “Connections”。您将看到一长串默认数据库连接。单击以编辑 Presto 连接。 Airflow 连接到 Presto 需要进行以下更改。
+
+
+- 将 schema 从 hive 改为 default。
+- 将端口从 3400 改为 8080。
+
+保存这些更改，然后单击顶部的 “Data Profiling” 导航菜单，选择 “Ad Hoc Query”。从查询框上方的下拉列表中选择 “presto_default”，您就应该可以通过 Presto 执行 SQL 代码了。下面是针对我在安装中导入的数据集运行的示例查询。
+
+
+    SELECT count(*)
+    FROM trips_orc;
+
+
+### 下载天气数据集
+可以将 Airflow DAG 视为定时执行的作业。在下面的示例中，我将在 GitHub 上获取 FiveThirtyEight 数据仓库提供的天气数据，将其导入 HDFS，将其从 CSV 转换为 ORC 并将其从 Presto 导出为 Microsoft Excel 格式。
+
+以下内容将 FiveThirtyEight 的数据存储克隆到名为 data 的本地文件夹中。
+
+
+
+    $ git clone \
+        https://github.com/fivethirtyeight/data.git \
+        ~/data
+
+
+然后我将启动 Hive 并创建两个表。一个存数据集的 CSV 格式，另一个存数据集的 Presto 和 Spark 友好的 ORC 格式。
+
+
+    $ hive
+
+
+    CREATE EXTERNAL TABLE weather_csv (
+        date_                 DATE,
+        actual_mean_temp      SMALLINT,
+        actual_min_temp       SMALLINT,
+        actual_max_temp       SMALLINT,
+        average_min_temp      SMALLINT,
+        average_max_temp      SMALLINT,
+        record_min_temp       SMALLINT,
+        record_max_temp       SMALLINT,
+        record_min_temp_year  INT,
+        record_max_temp_year  INT,
+        actual_precipitation  DECIMAL(18,14),
+        average_precipitation DECIMAL(18,14),
+        record_precipitation  DECIMAL(18,14)
+    ) ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+      LOCATION '/weather_csv/';
+
+    CREATE EXTERNAL TABLE weather_orc (
+        date_                 DATE,
+        actual_mean_temp      SMALLINT,
+        actual_min_temp       SMALLINT,
+        actual_max_temp       SMALLINT,
+        average_min_temp      SMALLINT,
+        average_max_temp      SMALLINT,
+        record_min_temp       SMALLINT,
+        record_max_temp       SMALLINT,
+        record_min_temp_year  INT,
+        record_max_temp_year  INT,
+        actual_precipitation  DOUBLE,
+        average_precipitation DOUBLE,
+        record_precipitation  DOUBLE
+    ) STORED AS orc
+      LOCATION '/weather_orc/';
+
+
