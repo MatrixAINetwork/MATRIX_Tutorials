@@ -199,3 +199,37 @@ PosNet 检测到17个姿态关键点。
     const poses = await net.estimateMultiplePoses(
     imageElement, imageScaleFactor, flipHorizontal, outputStride,    
     maxPoseDetections, scoreThreshold, nmsRadius);
+
+
+输出数组的示例如下所示：
+
+    // 姿态/人的数组
+    [ 
+     { // pose #1
+    "score": 0.42985695206067,
+    "keypoints": [
+      { // nose
+        "position": {
+          "x": 126.09371757507,
+          "y": 97.861720561981
+         },
+        "score": 0.99710708856583
+      },
+      ... 
+    ]
+    },
+     { // pose #2
+    "score": 0.13461434583673,
+    "keypositions": [
+      { // nose
+        "position": {
+          "x": 116.58444058895,
+          "y": 99.772533416748
+        },
+      "score": 0.9978438615799
+      },
+      ...
+    ]
+    },
+    ... 
+    ]
