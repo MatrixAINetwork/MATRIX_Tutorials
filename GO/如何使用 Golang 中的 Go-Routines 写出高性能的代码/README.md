@@ -171,3 +171,32 @@
 
 
 为了了解为什么这两个灵活性完全改变了运作方式，让我们看看什么是闭包。
+
+
+### 所以什么是闭包？
+
+除了访问局部变量和全局变量，函数还可以访问函数声明中声明的所有局部变量，只要它们是在之前声明的（包括在运行时传递给闭包函数的所有参数），在嵌套的情况下，函数可以访问所有函数的变量（无论闭包的级别如何）。
+
+为了理解的更好，让我们考虑一个简单的情况，两个函数，一个包含另一个。
+
+
+    package main
+
+    import "fmt"
+
+    var zero int = 0
+
+    func main() {
+    var one int = 1
+    child := func() {
+        var two int = 3
+        fmt.Println(zero)
+        fmt.Println(one)
+        fmt.Println(two)
+        fmt.Println(three) // causes compilation Error
+    }
+    child()
+    var three int = 2
+    }
+
+
