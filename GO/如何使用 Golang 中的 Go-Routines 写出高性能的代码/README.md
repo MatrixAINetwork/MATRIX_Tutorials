@@ -61,3 +61,46 @@
     Box 9
     Box 10
 
+所以，如果我们想在在移动盒子这个过程中使用额外的 CPU 核心，我们需要声明一个 go-routine。
+
+
+### 包含 Go-Routines 的示例程序 2
+
+    package main
+
+    import "fmt"
+
+    func main() {
+    go func() {
+        fmt.Println("Box 1")
+        fmt.Println("Box 2")
+        fmt.Println("Box 3")
+    }()
+    fmt.Println("Box 4")
+    fmt.Println("Box 5")
+    fmt.Println("Box 6")
+    fmt.Println("Box 7")
+    fmt.Println("Box 8")
+    fmt.Println("Box 9")
+    fmt.Println("Box 10")
+    }
+
+
+这儿，一个 go-routine 被声明且包含了前三个打印语句。意思是处理 main 函数的核心只执行 4-10 行的语句。另一个不同的核心被分配去执行 1-3 行的语句块。
+
+
+### 输出
+
+    Box 4
+    Box 5
+    Box 6
+    Box 1
+    Box 7
+    Box 8
+    Box 2
+    Box 9
+    Box 3
+    Box 10
+
+
+
