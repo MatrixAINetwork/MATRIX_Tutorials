@@ -396,3 +396,65 @@ Channels 是 go-routines 之间通信的一种资源，它们可以是任意类�
     <-ack
     }
     }
+
+
+通过将语句（Point #1）添加到 worker 方法中（Point #2），闭包属性巧妙的在任务参数定义中添加了对确认 channel 的调用，我们使用这个循环（Point #3）来使 main 函数有一个机制去知道池中的所有 go-routine 是否都完成了任务。所有和 go-routines 相关的逻辑都应该包含在 worker 自己中，因为它们是在其中创建的。main 函数不应该知道内部 worker 函数们的工作细节。
+
+
+因此，为了实现完全的抽象，我们要引入一个『climax』函数，只有在池中所有 go-routine 全部完成之后才运行。这是通过设置另一个单独检查池状态的 go-routine 来实现的，另外不同的问题需要不同类型的 channel 类型。相同的 int cannel 不能在所有情况下使用，所以，为了写一个更通用的 worker 函数，我们将使用空接口类型重新定义一个 worker 函数。
+
+
+
+    package main
+
+    import "fmt"
+
+    var N int = 100
+    var R int = 100
+
+    func Task(i int) {
+    fmt.Println("Box", i)
+    }
+    func Workers(task func(interface{}), climax func()) chan interface{} {
+    input := make(chan interface{})
+    ack := make(chan bool)
+    for i := 0; i < R; i++ {
+        go func() {
+            for {
+                v, ok := <-input
+                if ok {
+                    task(v)
+                    ack <- true
+                } else {
+                    return
+                }
+            }
+        }()
+    }
+    go func() {
+        for i := 0; i < R; i++ {
+            <-ack
+        }
+        climax()
+    }()
+    return input
+    }
+    func main() {
+
+    exit := make(chan bool)
+
+    workers := Workers(func(a interface{}) {
+        Task(a.(int))
+    }, func() {
+        exit <- true
+    })
+
+    for i := 0; i < N; i++ {
+        workers <- i
+    }
+    close(workers)
+
+    <-exit
+    }
+
+
