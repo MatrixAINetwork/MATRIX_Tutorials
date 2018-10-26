@@ -245,3 +245,30 @@
 
 
            注意：即使闭包执行完了，它的局部变量任然不会被销毁。它们仍然能够通过名字是 「global」的函数名去访问。
+
+
+下面介绍一下 Channels。
+
+Channels 是 go-routines 之间通信的一种资源，它们可以是任意类型。
+
+
+    ch := make(chan string)
+
+我们定义了一个叫做 ch 的 string 类型的 channel。只有 string 类型的变量可以通过此 channel 通信。
+
+
+    ch <- "Hi"
+
+
+就是这样发送消息到 channel 中。
+
+    msg := <- ch
+
+
+这是如何从 channel 中接收消息。
+
+所有 channel 中的操作（发送和接收）本质上是阻塞的。这意味着如果一个 go-routine 试图通过 channel 发送一个消息，那么只有在存在另一个 go-routine 正在试图从 channel 中取消息的时候才会成功。如果没有 go-routine 在 channel 那里等待接收，作为发送方的 go-routine 就会永远尝试发送消息给某个接收方。
+
+最重要的点是这里，跟在 channel 操作后面的所有的语句在 channel 操作结束之前是不会执行的，go-routine 可以解锁自己然后执行跟在它后面的的语句。这有助于同步其他代码块的各种 go-routine。
+
+
