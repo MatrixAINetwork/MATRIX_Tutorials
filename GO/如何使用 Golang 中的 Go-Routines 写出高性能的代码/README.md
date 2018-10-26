@@ -345,3 +345,54 @@ Channels 是 go-routines 之间通信的一种资源，它们可以是任意类�
     }
 
 
+解释一下我们做了什么...
+
+- 我们为每个任务创建一个 go-routine。我们的系统能同时支持「R」个 go-routines。只要 N≤R 我们这么做就是安全的。
+- 我们确认 main 函数在等待所有 go-routine 完成的时候才返回。我们通过等待所有 go-routine（通过闭包属性）使用的确认 channel（「ack」）来传达其完成。
+- 我们传递循环计数「i」作为参数「arg」给 go-routine，而不是通过闭包属性在 go-routine 中直接引用它。
+
+另一方面，如果 N>R，则上述解决方法会有问题。它会创建系统不能处理的 go-routines。所有核心都尝试运行更多的，超过其容量的 go-routines，最终将会把更多的时间话费在上下文切换上而不是运行程序（俗称抖动）。当 N 和 R 之间的数量差异越来越大，上下文切换的开销会更加突出。因此要始终将 go-routine 的数量限制为 R。并将 N 个任务分配给 R 个 go-routines。
+
+
+下面我们介绍 workers 函数
+
+    var R int = 100
+    func Workers(task func(int)) chan int { // Point #4
+    input := make(chan int)                // Point #1
+    for i := 0; i < R; i++ {               // Point #1
+    go func() {
+     for {
+       v, ok := <-input                   // Point #2
+       if ok {
+         task(v)                           // Point #4
+       } else {
+         return                            // Point #2
+       }
+     }
+     }()
+    }
+    return input                          // Point #3
+    }
+
+
+- 创建一个包含有「R」个 go-routines 的池。不多也不少，所有对「input」channel 的监听通过闭包属性来引用。
+- 创建 go-routines，它通过在每次循环中检查 ok 参数来判断 channel 是否关闭，如果 channel 关闭则杀死自己。
+- 返回 input channel 来允许调用者函数分配任务给池。
+- 使用「task」参数来允许调用函数定义 go-routines 的主体。
+
+
+### 使用
+
+    func main() {
+    ack := make(chan bool, N)
+    workers := Workers(func(a int) {     // Point #2
+     Task(a)
+     ack <- true                        // Point #1
+     }) 
+    for i := 0; i < N; i++ {
+     workers <- i
+    }
+    for i := 0; i < N; i++ {             // Point #3
+    <-ack
+    }
+    }
