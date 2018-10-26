@@ -290,3 +290,58 @@ Channels 是 go-routines 之间通信的一种资源，它们可以是任意类�
 
 所以，一个缓冲 channel 的行为是否和非缓冲 channel 一样，取决于缓冲区在运行时是否空闲
 
+### Channels 的关闭
+
+    close(ch)
+
+
+这就是如何关闭 channel。在 Golang 中它对避免死锁很有帮助。接收方的 go-routine 可以像下面这样探测 channel 是否关闭了。
+
+    msg, ok := <- ch
+    if !ok {
+     fmt.Println("Channel closed")
+    }
+
+
+### 使用 Golang 写出很快的代码
+
+现在我们讲的知识点已经涵盖了 go-routines，闭包，channel。考虑到移动盒子的算法已经很有效率，我们可以开始使用 Golang 开发一个通用的解决方案来解决问题，我们只关注为任务雇佣合适的人的数量。
+
+让我们仔细看看我们的问题，重新定义它。
+
+我们有 100 个盒子需要从一个房间移动到另一个房间。需要着重说明的一点是，移动盒子1和移动盒子2涉及的工作没有什么不同。因此我们可以定义一个移动盒子的方法，变量「i」代表被移动的盒子。方法叫做「任务」，盒子数量用「N」表示。任何「计算机编程基础 101」课程都会教你如何解决这个问题：写一个 for 循环调用「任务」N 次，这导致计算被单核心占用，而系统中的可用核心是个硬件问题，取决于系统的品牌，型号和设计。所以作为软件开发人员，我们将硬件从我们的问题中抽离出去，来讨论 go-routines 而不是核心。越多的核心就支持越多的 go-routines，我们假设「R」是我们「X」核心系统所支持的 go-routines 数量。
+
+
+    FYI：数量「X」的核心数量可以处理超过数量「X」的 go-routines。单个核心支持的 go-routines 数量（R/X）取决于 go-routines 涉及的处理方式和运行时所在的平台。比如，如果所有的 go-routine 仅涉及阻塞调用，例如网络 I/O 或者 磁盘 I/O，则单个内核足以处理它们。这是真的，因为每个 go-routine 相比运算来说更多的在等待。因此，单个核心可以处理所有 go-routine 之间的上下文切换。
+
+因此我们的问题的一般性的定义为
+
+    将「N」个任务分配给「R」个 go-routines，其中所有的任务都相同。
+
+如果 N≤R，我们可以用以下方式解决。
+
+
+    package main
+
+    import "fmt"
+
+    var N int = 100
+
+    func Task(i int) {
+    fmt.Println("Box", i)
+    }
+    func main() {
+    ack := make(chan bool, N) // Acknowledgement channel
+    for i := 0; i < N; i++ {
+        go func(arg int) { // Point #1
+            Task(arg)
+            ack <- true // Point #2
+        }(i) // Point #3
+    }
+
+    for i := 0; i < N; i++ {
+        <-ack // Point #2
+    }
+    }
+
+
