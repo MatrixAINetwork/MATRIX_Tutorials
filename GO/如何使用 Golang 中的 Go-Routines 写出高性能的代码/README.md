@@ -206,3 +206,42 @@
 - one 变量 - 闭包属性 - one 属于主函数，它在主函数中且定义在子函数之前。
 - two 变量 - 它是子函数的局部变量
 
+        注意：虽然它被定义在封闭函数「main」中，但它不能访问 three 变量，因为后者的声明在子函数的定义后面
+
+和嵌套一样。
+
+    package main
+
+    import "fmt"
+
+    var global func()
+
+    func closure() {
+    var A int = 1
+    func() {
+        var B int = 2
+        func() {
+            var C int = 3
+            global = func() {
+                fmt.Println(A, B, C)
+                fmt.Println(D, E, F) // causes compilation error
+            }
+            var D int = 4
+        }()
+        var E int = 5
+    }()
+    var F int = 6
+    }
+    func main() {
+    closure()
+    global()
+    }
+
+
+如果我们考虑一下将一个最内层的函数关联给一个全局变量「global」。
+
+- 它可以访问到 A、B、C 变量，和闭包无关。
+- 它无法访问 D、E、F 变量，因为它们之前没有定义。
+
+
+           注意：即使闭包执行完了，它的局部变量任然不会被销毁。它们仍然能够通过名字是 「global」的函数名去访问。
