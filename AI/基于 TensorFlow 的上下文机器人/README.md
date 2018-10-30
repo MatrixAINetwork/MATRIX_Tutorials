@@ -287,3 +287,152 @@ train_y example: [0, 0, 1, 0, 0, 0, 0, 0, 0]
     We rent Yamaha, Piaggio and Vespa mopeds
     response('Goodbye, see you later')
     Bye! Come back again soon.
+
+
+让我们给出租汽车的聊天机器人加入一些基本的上下文吧。
+
+### 情景化
+
+我们想要让聊天机器人处理关于出租汽车的对话，比如询问客户是否要今天租赁。这个问题是一个简单的上下文响应，如果用户回复“今天”，那么上下文就是租赁时间，这个时候就赶紧给租赁公司打电话吧，他不想错过这个订单的。
+
+为了实现这一目的，我们在框架中添加了状态这个概念。这由一个保存状态的数据结构和操作状态的特定代码组成，以便处理意图。
+
+因为状态机（state-machine）需要很容易地持久化、恢复、复制等等，所以把它保存在像字典这样的数据结构中是很重要的。
+
+以下是我们对基本情景化的反应过程：
+
+
+# 字典储存上下文
+    context = {}
+    ERROR_THRESHOLD = 0.25
+    def classify(sentence):
+    # 得到的预测的结果（概率）列表
+    results = model.predict([bow(sentence, words)])[0]
+    # 根据错误阈值筛选预测的结果
+    results = [[i,r] for i,r in enumerate(results) if r>ERROR_THRESHOLD]
+    # 根据概率值倒序排序
+    results.sort(key=lambda x: x[1], reverse=True)
+    return_list = []
+    for r in results:
+        return_list.append((classes[r[0]], r[1]))
+    # 返回意图和概率的元组
+    return return_list
+
+    def response(sentence, userID='123', show_details=False):
+    results = classify(sentence)
+    # 根据分类结果匹配意图标签
+    if results:
+        # 循环匹配
+        while results:
+            for i in intents['intents']:
+                # 寻找与第一个结果匹配的标签
+                if i['tag'] == results[0][0]:
+                    # 在必要时为这个意图设置上下文
+                    if 'context_set' in i:
+                        if show_details: print ('context:', i['context_set'])
+                        context[userID] = i['context_set']
+                    # 检查这个意图是否与上下文相关然后与当前用户关联
+                    if not 'context_filter' in i or \
+                        (userID in context and 'context_filter' in i and i['context_filter'] == context[userID]):
+                        if show_details: print ('tag:', i['tag'])
+                        # 返回响应
+                        return print(random.choice(i['responses']))
+            results.pop(0)
+
+
+我们的上下文状态是一个字典，他将包含每个用户的状态。每个用户都有唯一的标识符，从而达到让我们的框架能够 无缝地维持多个用户之间的状态。
+
+
+    context = {}
+
+
+上下文处理程序被添加到意图处理流中，如下所示:
+
+	if i['tag'] == results[0][0]:
+	# 在必要时为这个意图设置上下文
+	if 'context_set' in i:
+		if show_details: print ('context:', i['context_set'])
+		context[userID] = i['context_set']
+		# 检查这个意图是否与上下文相关然后与当前用户关联
+		if not 'context_filter' in i or \
+			(userID in context and 'context_filter' in i and i['context_filter'] == context[userID]):
+			if show_details: print ('tag:', i['tag'])
+			# 返回响应
+			return print(random.choice(i['responses']))
+
+
+如果一个意图想要设置上下文，他可以这样做：
+
+    {“tag”: “rental”,
+    “patterns”: [“Can we rent a moped?”, “I’d like to rent a moped”, … ],
+    “responses”: [“Are you looking to rent today or later this week?”],
+    “context_set”: “rentalday”
+     }
+
+如果另外一个意图想要和上下文联系，那么他可以这样做：
+
+    {“tag”: “today”,
+    “patterns”: [“today”],
+    “responses”: [“For rentals today please call 1–800-MYMOPED”, …],
+    “context_filter”: “rentalday”
+     }
+
+
+用这种方式，当用户只是意料之外地输入“今天“的的时候（没有上下文），“今天” 这个意图就不会被处理。当他们输入的 “今天” 作为回复我们提出的问题的时候，那么这个意图就会被处理。
+
+
+    response('we want to rent a moped')
+    Are you looking to rent today or later this week?
+    response('today')
+    Same-day rentals please call 1-800-MYMOPED
+
+我们的上下文状态就会改变
+
+    context
+    {'123': 'rentalday'}
+
+
+我们定义“问候”的语句来清除上下文，就像闲聊时经常发生的那样。我们添加了一个 “查看详情” 的参数来帮助我们查看内部的运作
+
+    response("Hi there!", show_details=True)
+    context: ''
+    tag: greeting
+    Good to see you again
+
+
+让我们再尝试一下输入 “今天”，这里有一些需要注意的东西...
+
+    response('today')
+    We're open every day from 9am-9pm
+    classify('today')
+    [('today', 0.5322513580322266), ('opentoday', 0.2611265480518341)]
+
+
+首先，我们对上下文无关的“今天”的反应是不同的。我们的分类产生了 2 个合适的意图，但是 'opentoday' 被选中， 'today' 意图虽然具备更高的可能性，但是却被限制在一个不再合适的环境中，所以说上下文很重要。
+
+    response("thanks, your great")
+    Happy to help!
+
+
+在语境化发生的情况下有几件事情需要考虑。
+
+### 维持状态
+
+
+没错，你的聊天机器人将不再是一种 无状态的服务。
+
+除非你想重新构建状态，重新加载模型和文档—每次调用你的聊天机器人框架时，你都需要使其成为有状态的。
+
+这并不是那么难，你可以运行一个有状态的聊天机器人框架的过程，也即使用远程过程调用 RPC 或者远程方法调用 RMI，在这里我推荐使用 Pyro。
+
+
+
+![](https://camo.githubusercontent.com/cf761755db16697e3a214c86b12f4be679c23b23/68747470733a2f2f63646e2d696d616765732d312e6d656469756d2e636f6d2f6d61782f3630302f312a6870627553766f7671537956592d6e6842636f4961512e6a706567)
+
+RMI 客户端和服务器设置 用户界面（客户端）通常是无状态的，例如。HTTP 或 SMS。
+
+你 客户端 的聊天机器人将会创建一个 Pyro 函数调用，你的有状态服务将会处理他。
+
+
+
+
