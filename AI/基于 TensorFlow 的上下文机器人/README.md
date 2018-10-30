@@ -46,3 +46,54 @@
     import tensorflow as tf
     import random
 
+
+    # import our chat-bot intents file
+    import json
+    with open('intents.json') as json_data:
+    intents = json.load(json_data)
+
+
+意图的 JSON 文件被加载后，我们现在可以开始组织我们的文档、文字和分类器对应的类别。
+
+
+    words = []
+    classes = []
+    documents = []
+    ignore_words = ['?']
+    # 根据意图遍历所有的句子
+    for intent in intents['intents']:
+    for pattern in intent['patterns']:
+        # 分词
+        w = nltk.word_tokenize(pattern)
+        # 将词添加到列表中
+        words.extend(w)
+        # 将文档添加到词料库
+        documents.append((w, intent['tag']))
+        # 将 Tag 添加到类别中
+        if intent['tag'] not in classes:
+            classes.append(intent['tag'])
+
+    # 将词小写然后去掉忽略的词
+    words = [stemmer.stem(w.lower()) for w in words if w not in ignore_words]
+    words = sorted(list(set(words)))
+
+    # 使用 set 去掉重复的词
+    classes = sorted(list(set(classes)))
+
+    print (len(documents), "documents")
+    print (len(classes), "classes", classes)
+    print (len(words), "unique stemmed words", words)
+
+我们创建了一个文档（句子）列表，每个句子都是一个词干的列表，每个文档都与一个意图（一个类）相关。
+
+    27 documents
+    9 classes ['goodbye', 'greeting', 'hours', 'mopeds', 'opentoday', 'payments', 'rental', 'thanks', 'today']
+    44 unique stemmed words ["'d", 'a', 'ar', 'bye', 'can', 'card', 'cash', 'credit', 'day', 'do', 'doe', 'good', 'goodby', 'hav', 'hello', 'help', 'hi', 'hour', 'how', 'i', 'is', 'kind', 'lat', 'lik', 'mastercard', 'mop', 'of', 'on', 'op', 'rent', 'see', 'tak', 'thank', 'that', 'ther', 'thi', 'to', 'today', 'we', 'what', 'when', 'which', 'work', 'you']
+
+
+词干 "tak" 将会和 "take", "taking","takers" 等词匹配。我们可以清理单词列表并删除无用的条目，但这就足够了。
+
+
+但是目前的数据结构不能够被 TensorFlow 利用，我们需要进一步的转换它： 也即将文档中的词转换成数字的张量。
+
+
