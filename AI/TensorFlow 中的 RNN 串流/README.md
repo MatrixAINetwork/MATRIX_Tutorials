@@ -37,3 +37,156 @@ DeepSpeech 的当前版本使用了用 TensorFlow 实现的双向 RNN，这意�
     一种使用单向 RNN 的备选架构，其中每个时间步长仅取决于即时的输入和来自前一步的状态。
 
 
+下面是创建一个推理图的代码，它可以跟踪每个输入窗口之间的状态：
+
+    import tensorflow as tf
+
+    def create_inference_graph(batch_size=1, n_steps=16, n_features=26, width=64):
+    input_ph = tf.placeholder(dtype=tf.float32,
+                              shape=[batch_size, n_steps, n_features],
+                              name='input')
+    sequence_lengths = tf.placeholder(dtype=tf.int32,
+                                      shape=[batch_size],
+                                      name='input_lengths')
+    previous_state_c = tf.get_variable(dtype=tf.float32,
+                                       shape=[batch_size, width],
+                                       name='previous_state_c')
+    previous_state_h = tf.get_variable(dtype=tf.float32,
+                                       shape=[batch_size, width],
+                                       name='previous_state_h')
+    previous_state = tf.contrib.rnn.LSTMStateTuple(previous_state_c, previous_state_h)
+
+    # 从以批次为主转置成以时间为主
+    input_ = tf.transpose(input_ph, [1, 0, 2])
+
+    # 展开以契合前馈层的维度
+    input_ = tf.reshape(input_, [batch_size*n_steps, n_features])
+
+    # 三个隐含的 ReLU 层
+    layer1 = tf.contrib.layers.fully_connected(input_, width)
+    layer2 = tf.contrib.layers.fully_connected(layer1, width)
+    layer3 = tf.contrib.layers.fully_connected(layer2, width)
+
+    # 单向 LSTM
+    rnn_cell = tf.contrib.rnn.LSTMBlockFusedCell(width)
+    rnn, new_state = rnn_cell(layer3, initial_state=previous_state)
+    new_state_c, new_state_h = new_state
+
+    # 最终的隐含层
+    layer5 = tf.contrib.layers.fully_connected(rnn, width)
+
+    # 输出层
+    output = tf.contrib.layers.fully_connected(layer5, ALPHABET_SIZE+1, activation_fn=None)
+
+    # 用新的状态自动更新原先的状态
+    state_update_ops = [
+        tf.assign(previous_state_c, new_state_c),
+        tf.assign(previous_state_h, new_state_h)
+    ]
+    with tf.control_dependencies(state_update_ops):
+        logits = tf.identity(logits, name='logits')
+
+    # 创建初始化状态
+    zero_state = tf.zeros([batch_size, n_cell_dim], tf.float32)
+    initialize_c = tf.assign(previous_state_c, zero_state)
+    initialize_h = tf.assign(previous_state_h, zero_state)
+    initialize_state = tf.group(initialize_c, initialize_h, name='initialize_state')
+
+    return {
+        'inputs': {
+            'input': input_ph,
+            'input_lengths': sequence_lengths,
+        },
+        'outputs': {
+            'output': logits,
+            'initialize_state': initialize_state,
+        }
+    }
+
+
+上述代码创建的图有两个输入和两个输出。输入是序列及其长度。输出是 logit 和一个需要在一个新序列开始运行的特殊节点 initialize_state。当固化图像时，请确保不固化状态变量 previous_state_h 和 previous_state_c。
+
+下面是固化图的代码:
+
+    from tensorflow.python.tools import freeze_graph
+
+    freeze_graph.freeze_graph_with_def_protos(
+        input_graph_def=session.graph_def,
+        input_saver_def=saver.as_saver_def(),
+        input_checkpoint=checkpoint_path,
+        output_node_names='logits,initialize_state',
+        restore_op_name=None,
+        filename_tensor_name=None,
+        output_graph=output_graph_path,
+        initializer_nodes='',
+        variable_names_blacklist='previous_state_c,previous_state_h')
+
+通过以上对模型的更改，我们可以在客户端采取以下步骤：
+
+- 运行 initialize_state 节点。
+- 积累音频样本，直到数据足以供给模型（我们使用的是 16 个时间步长，或 320ms）
+- 将数据供给模型，在某个地方积累输出。
+- 重复第二步和第三步直到数据结束。
+
+### 性能提升
+
+这些架构上的改动对我们的 STT 引擎能造成怎样的影响？下面有一些与当前稳定版本相比较的数字：
+
+- 模型大小从 468MB 减小至 180MB
+- 转录时间：一个时长 3s 的文件，运行在笔记本 CPU上，所需时间从 9s 降至 1.5s
+- 堆内存的峰值占用量从 4GB 降至 20MB（模型现在是内存映射的）
+- 总的堆内存分配从 12GB 降至 264MB
+
+我觉得最重要的一点，我们现在能在不使用 GPU 的情况下满足实时的速率，这与流式推理一起，开辟了许多新的使用可能性，如无线电节目、Twitch 流和 keynote 演示的实况字幕；家庭自动化；基于语音的 UI；等等等等。如果你想在下一个项目中整合语音识别，考虑使用我们的引擎！
+
+下面是一个小型 Python 程序，演示了如何使用 libSoX 库调用麦克风进行录音，并在录制音频时将其输入引擎。
+
+
+    import argparse
+    import deepspeech as ds
+    import numpy as np
+    import shlex
+    import subprocess
+    import sys
+
+    parser = argparse.ArgumentParser(description='DeepSpeech speech-to-text from microphone')
+    parser.add_argument('--model', required=True,
+                    help='Path to the model (protocol buffer binary file)')
+    parser.add_argument('--alphabet', required=True,
+                    help='Path to the configuration file specifying the alphabet used by the network')
+    parser.add_argument('--lm', nargs='?',
+                    help='Path to the language model binary file')
+    parser.add_argument('--trie', nargs='?',
+                    help='Path to the language model trie file created with native_client/generate_trie')
+    args = parser.parse_args()
+
+    LM_WEIGHT = 1.50
+    VALID_WORD_COUNT_WEIGHT = 2.25
+    N_FEATURES = 26
+    N_CONTEXT = 9
+    BEAM_WIDTH = 512
+
+    print('Initializing model...')
+
+    model = ds.Model(args.model, N_FEATURES, N_CONTEXT, args.alphabet, BEAM_WIDTH)
+    if args.lm and args.trie:
+    model.enableDecoderWithLM(args.alphabet,
+                              args.lm,
+                              args.trie,
+                              LM_WEIGHT,
+                              VALID_WORD_COUNT_WEIGHT)
+    sctx = model.setupStream()
+
+    subproc = subprocess.Popen(shlex.split('rec -q -V0 -e signed -L -c 1 -b 16 -r 16k -t raw - gain -2'),
+                           stdout=subprocess.PIPE,
+                           bufsize=0)
+    print('You can start speaking now. Press Control-C to stop recording.')
+
+    try:
+    while True:
+        data = subproc.stdout.read(512)
+        model.feedAudioContent(sctx, np.frombuffer(data, np.int16))
+    except KeyboardInterrupt:
+    print('Transcription:', model.finishStream(sctx))
+    subproc.terminate()
+    subproc.wait()
