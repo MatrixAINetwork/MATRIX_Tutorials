@@ -22,3 +22,22 @@ At that point, my development process put accessibility at the bottom of the lis
 
 
     “The web is replete with images that have missing, incorrect, or poor alternative text” — WebAIM (Center for Persons with Disabilities at Utah State University)
+
+
+### Artificial Intelligence to the Rescue:
+
+There are numerous ways to caption images; however, most have a few disadvantages in common:
+
+- They aren’t responsive and take a long time to return a caption.
+- They are semi-automated (i.e. relying on humans to manually caption images on demand).
+- They are expensive to create and maintain.
+- 
+By creating a neural network, all of these problems can be solved. I recently had started taking a deep dive into machine learning and AI when I came across Tensorflow, an open source library to help with machine learning. Tensorflow enables developers to architect robust models that can be used to complete a variety of tasks from object detection to image recognition.
+
+Doing a bit more research, I came across a paper by Vinyals et al called “[Show and Tell: Lessons learned from the 2015 MSCOCO Image Captioning Challenge](https://arxiv.org/abs/1609.06647)”. These researchers created a deep neural network to describe image content in a semantic manner.
+
+
+![](https://cdn-images-1.medium.com/max/1600/1*mSvmjcvUbpgB3izigcEi4w.png)
+
+Examples of im2txt in action from the im2txt Github Repository
+
