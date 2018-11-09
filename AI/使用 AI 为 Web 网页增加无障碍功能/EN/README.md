@@ -41,3 +41,30 @@ Doing a bit more research, I came across a paper by Vinyals et al called “[Sho
 
 Examples of im2txt in action from the im2txt Github Repository
 
+
+### Technical Details of im2txt:
+
+The mechanics of the model are fairly detailed, but basically it is an “encoder-decoder” scheme. First, the image is put through a deep convolutional neural network called Inception v3, an image classifier. Next, the encoded image is fed through an LSTM which is a type of neural network that specialized in modeling sequences/time-sensitive information. The LSTM then works through a set vocabulary and constructs a sentence to describe the image. It does this by taking the likelihood of each word from that set vocabulary appearing first in the sentence and then computing the most likely second-word probability distribution given the first-word probability distribution and so on until the most likely character is a “.” indicating the end of the caption.
+
+![](https://cdn-images-1.medium.com/max/1600/1*CW6YVV_zEriaGrxMzN4quA.png)
+
+Overview of the structure of the neural network (from the im2txt Github repository).
+
+Per the Github repository, the training time for this neural network was approximately 1–2 weeks on a Tesla k20m GPU (probably much more for a standard CPU on a laptop which is what I have). Thankfully, a member of the tensorflow community provided a trained model for public download.
+
+### Problems out of the box + Lamdba:
+When running the model, I managed to get it to work with Bazel, a tool that is used to pre-package tensorflow models into runnable scripts (among other purposes). However, it took me nearly 15 seconds to get a result from a single image when running on the command line! The only way to solve this issue was to keep the tensorflow graph in memory, but that would require keeping the app up 24/7. I was planning on putting this model on AWS Elasticbeanstalk where compute time is prorated to the hour and keeping an app up all the time was non-ideal (basically leading to situation #3 in the disadvantages of image captioning software). So, I decided to switch over to AWS Lamdba to host everything.
+
+Lambda is a service that provides serverless computing for an incredibly low cost. Furthermore, it charges on a second by second basis when it is actively used. The way Lambda works is simple: once your app gets a request from a user, Lambda will activate an image of your application, serve a response, and deactivate that image. If you have multiple concurrent requests, it just spins up more instances to scale to the load. Additionally, it will keep your app activated as long as there are multiple requests within the hour. This service was a great fit for my use case.
+
+
+![](https://cdn-images-1.medium.com/max/1600/1*Q4EaQYos3s-67OkhhKzDkg.png)
+
+
+AWS API Gateway + AWS = heart (src)
+
+The problem with Lambda was that I had to create an API for the im2txt model. Furthermore, Lamdba has memory constraints on the application that can be loaded as a function. When uploading a zip file containing all your application code, including dependencies, the final file cannot be more than ~250 MB. This limit was a problem since the size of the im2txt model was over 180 MB, and the dependencies for it to run was over 350 MB. I tried to get around this issue by uploading some parts into an S3 instance and downloading into my running lambda instance when it was active; however, the total storage size limit on lambda is 512 MB which my application was well over (it was around 530 MB in total).
+
+To reduce the final size of my project, I reconfigured im2txt to accept a pared down model containing only the trained checkpoint and no extraneous metadata. This deletion reduced my model size to 120 MB. I then discovered lambda-packs which contained a minimized version of all the dependencies, albeit with an earlier version of python and tensorflow. After going through the painful process of downgrading any python 3.6 syntax and tensorflow 1.2 code, I finally had a package which was ~480 MB in total, just below the 512 MB limit.
+
+To keep response times quick, I created a CloudWatch function to keep the Lambda instance “hot” and the application active. I added a few helper functions to manipulate images not in JPG format and finally had a working API. All of these reductions led to a blazing fast response time of < 5 seconds in most cases!
