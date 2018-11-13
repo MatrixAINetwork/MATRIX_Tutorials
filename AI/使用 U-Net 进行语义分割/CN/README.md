@@ -58,3 +58,120 @@ Data Science Bowl 2018 和往届比赛一样都是由 Booz Allen Foundation 组�
 
 网络的第二部分则包括上采样和级联，然后是普通的卷积运算。对于一些读者来说，在 CNN 中使用上采样可能是个新概念，但其思路很简单：扩展特征维度，以达到与左侧的相应级联块的相同大小。这里的灰色和绿色的箭头表示将两个特征映射在一起。与其他 FCN 分割网络相比，U-Net 在这方面的主要贡献在于，在上采样和深入网络过程中，我们将下采样中的高分辨率特征与上采样特征连接起来以便在后续的卷积过程中更好地定位和学习实体的表征。由于上采样是稀疏操作，我们需要在早期处理过程中获取良好的先验，以更好的表示位置信息。在 FPN（Feature Pyramidal Networks） 中也有类似的连接匹配分级的思路。
 
+![](https://user-gold-cdn.xitu.io/2018/10/16/1667af9feaea3cf9?imageslim)
+图 7. 原生 U-Net 张量图解
+
+我们可以将在下降部分中的一个操作模块定义为“卷积 → 下采样”。
+
+    # 一个采样下降模块
+    def make_conv_bn_relu(in_channels, out_channels, kernel_size=3, stride=1, padding=1):
+    return [
+        nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size,  stride=stride, padding=padding, bias=False),
+        nn.BatchNorm2d(out_channels),
+        nn.ReLU(inplace=True)
+    ]
+    self.down1 = nn.Sequential(
+     *make_conv_bn_relu(in_channels, 64, kernel_size=3, stride=1, padding=1 ),
+     *make_conv_bn_relu(64, 64, kernel_size=3, stride=1, padding=1 ),
+    )
+
+    # 卷积然后最大池化
+    down1 = self.down1(x)
+    out1   = F.max_pool2d(down1, kernel_size=2, stride=2)
+
+
+U-Net 下采样模块
+
+同样我们可以在上升部分中定义一个操作模块：“上采样 → 级联 → 卷积”。
+
+
+    # 一个采样上升模块
+    def make_conv_bn_relu(in_channels, out_channels, kernel_size=3, stride=1, padding=1):
+    return [
+        nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size,  stride=stride, padding=padding, bias=False),
+        nn.BatchNorm2d(out_channels),
+        nn.ReLU(inplace=True)
+    ]
+    self.up4 = nn.Sequential(
+     *make_conv_bn_relu(128,64, kernel_size=3, stride=1, padding=1 ),
+     *make_conv_bn_relu(64,64, kernel_size=3, stride=1, padding=1 )
+    )
+    self.final_conv = nn.Conv2d(32, num_classes, kernel_size=1, stride=1, padding=0 )
+
+    # 对 out_last 上采样，并与 down1 级联，然后卷积
+    out   = F.upsample(out_last, scale_factor=2, mode='bilinear')  
+    out   = torch.cat([down1, out], 1)
+    out   = self.up4(out)
+
+    # 用于最后预测的 1 * 1 卷积
+    final_out = self.final_conv(out)
+
+
+U-Net 上采样模块
+
+仔细看下结构图，你会发现输出尺寸（388 * 388）与原始输入（572 * 572）并不一致。如果你希望输出保持一致的尺寸，你可以使用填充卷积来保持跨级联的维度一致，就像我们在上面的示例代码中所做的那样。
+
+当提到这种上采样时，您可能会遇到以下术语之一：转置卷积、上卷积、反卷积或上采样。很多人，包括我在内的很多人以及PyTorch技术文档都不喜欢反卷积这个术语，因为在上采样阶段，我们实际上是在做常规的卷积运算，并没有字面上所谓的“反”。在进一步讨论之前，如果你不熟悉基本卷积运算及其算术，我强烈建议你访问查看here.。[12]
+
+我将解释从简单到复杂的上采样方法。这里有三种在 PyTorch 中对二维张量进行上采样的方法：
+
+最近邻插值
+
+这是在将张量调整(转换)为更大张量(例如2x2到4x4、5x5或6x6)时寻找缺失像素值的最简单方法。
+
+我们使用 Numpy 逐步实现这个基础的计算机视觉算法：
+
+    def nn_interpolate(A, new_size):
+    """
+    逐步实现最近邻插值
+    """
+    # 获取大小
+    old_size = A.shape
+    
+    # 计算扩充后的行与列
+    row_ratio, col_ratio = new_size[0]/old_size[0], new_size[1]/old_size[1]
+    
+    # 定义新的行与列位置 
+    new_row_positions = np.array(range(new_size[0]))+1
+    new_col_positions = np.array(range(new_size[1]))+1
+    
+    # 按照比例标准化新行与列的位置
+    new_row_positions = new_row_positions / row_ratio
+    new_col_positions = new_col_positions / col_ratio
+    
+    # 对新行与列位置应用 ceil （计算大于等于该值的最小整数）
+    new_row_positions = np.ceil(new_row_positions)
+    new_col_positions = np.ceil(new_col_positions)
+    
+    # 计算各点需要重复的次数
+    row_repeats = np.array(list(Counter(new_row_positions).values()))
+    col_repeats = np.array(list(Counter(new_col_positions).values()))
+    
+    # 在矩阵的各列执行列向插值
+    row_matrix = np.dstack([np.repeat(A[:, i], row_repeats) 
+                            for i in range(old_size[1])])[0]
+    
+    # 在矩阵的各列执行列向插值
+    nrow, ncol = row_matrix.shape
+    final_matrix = np.stack([np.repeat(row_matrix[i, :], col_repeats)
+                             for i in range(nrow)])
+
+    return final_matrix
+    
+    
+    def nn_interpolate(A, new_size):
+    ""向量化最近邻插值"""
+
+    old_size = A.shape
+    row_ratio, col_ratio = np.array(new_size)/np.array(old_size)
+
+    # 行向插值
+    row_idx = (np.ceil(range(1, 1 + int(old_size[0]*row_ratio))/row_ratio) - 1).astype(int)
+
+    # 列向插值
+    col_idx = (np.ceil(range(1, 1 + int(old_size[1]*col_ratio))/col_ratio) - 1).astype(int)
+
+    final_matrix = A[:, row_idx][col_idx, :]
+
+    return final_matrix
+
