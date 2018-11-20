@@ -68,3 +68,33 @@ WWDC 演讲认为流畅的交互界面是“你思想的延伸”或是“自然
 
 ![](https://user-gold-cdn.xitu.io/2018/8/23/16564d91b81f5702?imageslim)
 
+### 核心功能
+- 被点击时马上高亮。
+- 即便处于动画中也可以被立即点击。
+- 用户可以在按住手势结束时或手指脱离按钮时取消点击。
+- 用户可以在按住手势结束时，手指脱离按钮和手指重回按钮来确认点击。
+
+
+### 设计理念
+我们希望按钮感觉是即时响应的，让用户知道它们是有功能的。另外，我们希望操作是可以被取消的，如果用户在按下按钮时决定撤销操作。这允许用户更快的做决定，因为他们可以在考虑的同时进行操作。
+
+![](https://user-gold-cdn.xitu.io/2018/8/23/16564d916989b63a?imageslim)
+
+WWDC 演讲上的幻灯片，展示了手势是如何与想法同时进行的，以此让操作更迅速。
+
+### 关键代码
+
+第一步是创建一个按钮，继承自 UIControl，不是继承自 UIButton。UIButton 也可以正常工作，但我们既然要自定义交互，那我们就不需要它的任何功能了。
+
+    CalculatorButton: UIControl {
+        public var value: Int = 0 {
+            didSet { label.text = “\(value)” }
+        }
+        private lazy var label: UILabel = { ... }()
+    }
+
+下一步，我们会使用 UIControlEvents 来为各种点击交互事件分配响应的功能。
+
+
+    addTarget(self, action: #selector(touchDown), for: [.touchDown, .touchDragEnter])
+    addTarget(self, action: #selector(touchUp), for: [.touchUpInside, .touchDragExit, .touchCancel])
