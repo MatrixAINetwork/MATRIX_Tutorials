@@ -26,3 +26,31 @@ PCA 是一种无监督方法，用于了解由向量构成数据集的全局属�
 ![](https://user-gold-cdn.xitu.io/2019/2/25/169241651b7e6d41?imageslim)
 
 显而易见，这个算法只能用于拟合简单的曲线或回归。
+
+工具库：
+[docs.scipy.org/doc/numpy/r…docs.scipy.org/doc/numpy-1…](https://link.juejin.im/?target=https%3A%2F%2Fdocs.scipy.org%2Fdoc%2Fnumpy-1.10.0%2Freference%2Fgenerated%2Fnumpy.polyfit.html)
+
+入门教程：
+
+
+[lagunita.stanford.edu/c4x/Humanit…](https://link.juejin.im/?target=https%3A%2F%2Flagunita.stanford.edu%2Fc4x%2FHumanitiesScience%2FStatLearning%2Fasset%2Flinear_regression.pdf)
+
+
+#### 约束线性回归
+最小二乘法在处理数据中的离群值、伪场和噪声会产生混淆。因此，在拟合一个数据集是需要约束来减少数据行中的方差。正确的方法是使用线性回归模型对数据集进行拟合，这样才能保证权重值不会出错。模型可以是 L1 规范（LASSO）或 L2（岭回归）或两者兼备（elastic regression）。均方损失最优化。
+
+![](https://user-gold-cdn.xitu.io/2019/2/25/16924168244699a2?imageslim)
+
+
+这类算法拟合回归线时有约束，可以避免过拟合，并降低模型中噪声维度。
+
+工具库：
+
+[scikit-learn.org/stable/modu…](https://link.juejin.im/?target=http%3A%2F%2Fscikit-learn.org%2Fstable%2Fmodules%2Flinear_model.html)
+
+入门教程：
+
+[www.youtube.com/watch?v=5as…](https://link.juejin.im/?target=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D5asL5Eq2x0A)
+
+[www.youtube.com/watch?v=jbw…](https://link.juejin.im/?target=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DjbwSCwoT51M)
+
