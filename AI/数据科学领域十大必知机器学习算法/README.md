@@ -127,3 +127,31 @@ SVM 的一个独特之处是可以学习一个分类器。
 多层感知机
 
 ![](https://user-gold-cdn.xitu.io/2019/2/25/16924168da0ed15f?imageslim)
+
+作为自编码器的前馈神经网络
+
+前馈神经网络可以用来训练分类器或者作为自编码器提取特征。
+
+工具库：
+
+[scikit-learn.org/stable/modu…](https://link.juejin.im/?target=http%3A%2F%2Fscikit-learn.org%2Fstable%2Fmodules%2Fgenerated%2Fsklearn.neural_network.MLPClassifier.html%23sklearn.neural_network.MLPClassifier)
+
+[scikit-learn.org/stable/modu…](https://link.juejin.im/?target=http%3A%2F%2Fscikit-learn.org%2Fstable%2Fmodules%2Fgenerated%2Fsklearn.neural_network.MLPRegressor.html)
+
+[github.com/keras-team/…](https://link.juejin.im/?target=https%3A%2F%2Fgithub.com%2Fkeras-team%2Fkeras%2Fblob%2Fmaster%2Fexamples%2Freuters_mlp_relu_vs_selu.py)
+
+入门教程：
+
+[www.deeplearningbook.org/contents/ml…](https://link.juejin.im/?target=http%3A%2F%2Fwww.deeplearningbook.org%2Fcontents%2Fmlp.html)
+
+[www.deeplearningbook.org/contents/au…](https://link.juejin.im/?target=http%3A%2F%2Fwww.deeplearningbook.org%2Fcontents%2Fautoencoders.html)
+
+[www.deeplearningbook.org/contents/re…](https://link.juejin.im/?target=http%3A%2F%2Fwww.deeplearningbook.org%2Fcontents%2Frepresentation.html)
+
+
+#### 卷积神经网络（卷积网）
+
+目前世界上几乎所有最先进的基于视觉的机器学习成果都是通过卷积神经网络实现的。它们可以用于图像分类、目标检测甚至图像分割。卷积网是由 Yann Lecun 在 80 年代末 90 年代初发明的，它以卷积层为主要特征，这些卷积层起到分层特征提取的作用。可以在文本（甚至图表）中使用它们。
+
+
+
