@@ -155,3 +155,99 @@ SVM 的一个独特之处是可以学习一个分类器。
 
 
 
+![](https://user-gold-cdn.xitu.io/2019/2/25/16924168e5d3aa60?imageslim)
+
+
+使用卷积网进行最新的图像和文本分类，目标检测，图像分割。
+
+工具库：
+
+developer.nvidia.com/digits
+
+github.com/kuangliu/to…
+
+github.com/chainer/cha…
+
+keras.io/application…
+
+入门教程：
+
+cs231n.github.io/
+
+adeshpande3.github.io/A-Beginner%…
+
+#### 循环神经网络 (RNN)
+
+RNN 通过将同一权重集递归应用到 t 时的聚合器状态和 t 时的输入，来对序列数据进行建模。（给定一个在时间点 0..t..T 处输入的序列，并在各个 t 处有一个由 RNN 中 t-1 步输出的隐藏状态）。纯粹的 RNN 现在很少使用，但它的相似架构，比如 LSTM 和 GRAS，在大多数序列型建模任务中都是最先进的。
+
+![](https://user-gold-cdn.xitu.io/2019/2/25/16924168cad2a9c1?imageslim)
+
+RNN（如果这是一个密集联接单元并具有非线性，那么现在 f 通常是 LSTM 或 GRU）。LSTM 单元通常用来代替 RNN 结构中的普通密集层。
+
+![](https://user-gold-cdn.xitu.io/2019/2/25/16924168dfda2ca9?imageslim)
+
+工具库：
+
+[github.com/tensorflow/…](https://link.juejin.im/?target=https%3A%2F%2Fgithub.com%2Ftensorflow%2Fmodels) (Many cool NLP research papers from Google are here)
+
+[github.com/wabyking/Te…](https://link.juejin.im/?target=https%3A%2F%2Fgithub.com%2Fwabyking%2FTextClassificationBenchmark)
+
+[opennmt.net/](https://link.juejin.im/?target=http%3A%2F%2Fopennmt.net%2F)
+
+入门教程：
+
+[cs224d.stanford.edu/](https://link.juejin.im/?target=http%3A%2F%2Fcs224d.stanford.edu%2F)
+
+[www.wildml.com/category/ne…](https://link.juejin.im/?target=http%3A%2F%2Fwww.wildml.com%2Fcategory%2Fneural-networks%2Frecurrent-neural-networks%2F)
+
+[colah.github.io/posts/2015-…
+](https://link.juejin.im/?target=http%3A%2F%2Fcolah.github.io%2Fposts%2F2015-08-Understanding-LSTMs%2F)
+
+
+#### 条件随机场（CRF）
+
+CRF 可能是概率图模型（PGM）家族中最常用的模型。它们可以像 RNN 一样用于序列型建模，也可以与 RNN 结合使用。在神经网络机器翻译系统出现之前，CRF 是最先进的，在许多小数据集的顺序型标记任务中，它们仍比需要大量数据才能归纳推理的 RNN 学习得更好。它们还可以用于其他结构化的预测任务中，比如图像分割等。CRF 对序列中的每个元素（比如句子）进行建模，以便相邻元素影响序列中某个组件的标签，而不是所有标签彼此独立。
+
+使用 CRF 标记序列（文本、图像、时间序列、DNA等）
+
+工具库：
+
+[sklearn-crfsuite.readthedocs.io/en/latest/](https://link.juejin.im/?target=https%3A%2F%2Fsklearn-crfsuite.readthedocs.io%2Fen%2Flatest%2F)
+
+入门教程：
+
+blog.echen.me/2012/01/03/…
+
+油管上 Hugo Larochelle 的 7 部系列演讲：[www.youtube.com/watch?v=GF3…](https://link.juejin.im/?target=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DGF3iSJkgPbA)
+
+
+
+
+#### 决策树
+
+比方来说，我收到了一张 Excel 表格，上面有关于各种水果的数据，我必须说出哪些看起来像苹果。我要做的就是问一个问题“哪个水果是红色且是圆形的？”，把所有回答“是”与“不是”的水果分为两个部分。现在红色且是圆形的水果不一定是苹果，所有苹果不一定都是红色且圆形的。所以我要问下一个问题，对于红色且圆形的水果问：“哪个水果有红色或者黄色？”而对不红且不圆的水果问：“哪些水果是绿色且圆形的？”。根据这些问题，可以相当准确的说出哪些是苹果。这一系列的问题就是决策树。然而，这是一个我直观描述的决策树。直觉不能用于高维的复杂数据。我们必须通过查看标记的数据自动提出一连串的问题。这就是基于机器学习的决策树所做的工作。像 CART 树这样较早的版本曾经用于简单的数据，但是随着数据集越来越大，偏差和方差之间的权衡需要更好的算法来解决。目前常用的两种决策树算法是随机森林算法（在属性的子集上建立不同的分类器，并将它们组合在一起进行输出）和增强树算法（在其他树之上训练一系列树，并纠正其子树中的错误）。
+决策树可以用来对数据点（甚至回归）进行分类。
+
+决策树可以用来对数据点（甚至回归）进行分类。
+
+
+工具库：
+
+[scikit-learn.org/stable/modu…](https://link.juejin.im/?target=http%3A%2F%2Fscikit-learn.org%2Fstable%2Fmodules%2Fgenerated%2Fsklearn.ensemble.RandomForestClassifier.html)
+
+[scikit-learn.org/stable/modu…](https://link.juejin.im/?target=http%3A%2F%2Fscikit-learn.org%2Fstable%2Fmodules%2Fgenerated%2Fsklearn.ensemble.GradientBoostingClassifier.html)
+
+[xgboost.readthedocs.io/en/latest/](https://link.juejin.im/?target=http%3A%2F%2Fxgboost.readthedocs.io%2Fen%2Flatest%2F)
+
+[catboost.yandex/](https://link.juejin.im/?target=https%3A%2F%2Fcatboost.yandex%2F)
+
+入门教程：
+
+[xgboost.readthedocs.io/en/latest/m…](https://link.juejin.im/?target=http%3A%2F%2Fxgboost.readthedocs.io%2Fen%2Flatest%2Fmodel.html)
+
+[arxiv.org/abs/1511.05…](https://link.juejin.im/?target=https%3A%2F%2Farxiv.org%2Fabs%2F1511.05741)
+
+[arxiv.org/abs/1407.75…](https://link.juejin.im/?target=https%3A%2F%2Farxiv.org%2Fabs%2F1407.7502)
+
+[education.parrotprediction.teachable.com/p/practical…](https://link.juejin.im/?target=http%3A%2F%2Feducation.parrotprediction.teachable.com%2Fp%2Fpractical-xgboost-in-python)
+
