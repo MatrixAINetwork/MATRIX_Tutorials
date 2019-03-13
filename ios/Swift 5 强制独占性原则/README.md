@@ -33,3 +33,19 @@ Swift 5 修复了语言模型中剩余的漏洞，并完全执行了该模型。
 
 一些罕见的还无法被编译器检测出来的涉及非法代码的情况（[SR-8546](https://link.juejin.im/?target=https%3A%2F%2Fbugs.swift.org%2Fbrowse%2FSR-8546)，[SR-9043](https://link.juejin.im/?target=https%3A%2F%2Fbugs.swift.org%2Fbrowse%2FSR-9043)）。
 
+### 对 Swift 项目的影响
+
+Swift 5 中的强制独占性检查对现有项目可能会产生以下两种影响：
+
+
+如果项目源码违反了 Swift 的独占性规则（具体查看 [SE-0176：实施对内存的独占访问](https://link.juejin.im/?target=https%3A%2F%2Fgithub.com%2Fapple%2Fswift-evolution%2Fblob%2Fmaster%2Fproposals%2F0176-enforce-exclusive-access-to-memory.md)），Debug 调试测试时未能执行无效代码，然后，在构建 Release 二进制文件时可能会触发运行时陷阱。产生崩溃并抛出一个包含字符串的诊断消息：
+「Simultaneous accesses to …, but modification requires exclusive access」
+源代码级别修复通常很简单。后面的章节会展示常见的违规和修复示例。
+
+
+内存访问检查的开销可能会影响的 Release 二进制包的性能。在大多数情况下，这种影响应该很小；如果你发现某个明显的性能下降情况，请提交 bug，以便我们了解需要改进的内容。作为一般性准则，应当避免在大多数性能关键循环中执行类属性访问，特别是在每个循环迭代中的不同对象上。如果必须如此，那么你可以将类属性修饰为 private 或 internal 来帮助告知编译器没有其他代码访问循环内的相同属性。
+
+
+你可以通过 Xcode 的「Exclusive Access to Memory」构建设置来禁用这些运行时检查，该设置还有「Run-time Checks in Debug Builds Only」和「Compile-time Enforcement Only」两个选项：
+
+![](https://user-gold-cdn.xitu.io/2019/2/28/16932f8a6b530db2?imageslim)
