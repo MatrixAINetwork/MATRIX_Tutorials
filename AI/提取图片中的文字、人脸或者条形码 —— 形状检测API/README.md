@@ -33,3 +33,76 @@
 
 机场可以设立网络信息亭，乘客可以在那里扫描登机牌的 Aztec codes 以显示与其航班相关的个性化信息。
 
+
+- 文字检测
+
+当没有提供其他描述时，在线社交网站可以通过将检测到的文本添加为 img[alt] 属性值来改善用户生成的图像内容的体验。
+
+内容网站可以使用文本检测来避免将标题置于包含文本的主要图像之上。
+
+Web 应用程序可以使用文本检测来翻译文本，例如，翻译餐馆菜单。
+#### 如何使用 Shape Detection API
+
+三个检测器向外暴露的接口 FaceDetector、BarcodeDetector 和 TextDetector 都非常相似，它们都提供了一个异步方法 detect，它接受一个 ImageBitmapSource 输入（或者是一个 CanvasImageSource、[Blob] 对象([w3c.github.io/FileAPI/#df…](https://link.juejin.im/?target=https%3A%2F%2Fw3c.github.io%2FFileAPI%2F%23dfn-Blob)) 或者 ImageData）。
+
+在使用 FaceDetector 和 BarcodeDetector 的情况下，可选参数可以被传递到所述检测器的构造函数中，其允许向底层原生检测器发起调用指示。
+
+    小提示：如果你的 ImageBitmapSource 来自一个 独立的脚本源 并且与 document 的源不同，那么 detect 将会调用失败并抛出一个名为 SecurityError 的 DOMException 。如果你的图片对跨域设置了 CORS，那么你可以使用 crossorigin 属性来请求 CORS 访问。
+
+
+#### 在项目里使用 FaceDetector
+
+    const faceDetector = new FaceDetector({
+    // (Optional) Hint to try and limit the amount of detected faces
+    // on the scene to this maximum number.
+    maxDetectedFaces: 5,
+    // (Optional) Hint to try and prioritize speed over accuracy
+    // by, e.g., operating on a reduced scale or looking for large features.
+    fastMode: false
+    });
+    try {
+    const faces = await faceDetector.detect(image);
+    faces.forEach(face => console.log(face));
+    } catch (e) {
+    console.error('Face detection failed:', e);
+    }
+
+#### 在项目里使用 BarcodeDetector
+
+    const barcodeDetector = new BarcodeDetector({
+    // (Optional) A series of barcode formats to search for.
+    // Not all formats may be supported on all platforms
+    formats: [
+    'aztec',
+    'code_128',
+    'code_39',
+    'code_93',
+    'codabar',
+    'data_matrix',
+    'ean_13',
+    'ean_8',
+    'itf',
+    'pdf417',
+    'qr_code',
+    'upc_a',
+    'upc_e'
+     ]
+    });
+    try {
+     const barcodes = await barcodeDetector.detect(image);
+     barcodes.forEach(barcode => console.log(barcode));
+    } catch (e) {
+    console.error('Barcode detection failed:', e);
+    }
+
+
+#### 在项目里使用 TextDetector
+
+    const textDetector = new TextDetector();
+    try {
+    const texts = await textDetector.detect(image);
+    texts.forEach(text => console.log(text));
+    } catch (e) {
+    console.error('Text detection failed:', e);
+    }
+
