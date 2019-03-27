@@ -106,3 +106,13 @@ Web 应用程序可以使用文本检测来翻译文本，例如，翻译餐馆�
     console.error('Text detection failed:', e);
     }
 
+#### 可用性检验
+
+在使用 Shape Detection API 接口之前检查构造函数是否存在是必须的，因为虽然 Linux 和 Chrome OS 上的 Chrome 目前已经开放了检测器的接口，但它们却没法正常使用（bug）。作为临时措施，我们建议在使用这些 API 之前应当这么做：
+
+    const supported = await (async () => 'FaceDetector' in window &&
+    await new FaceDetector().detect(document.createElement('canvas'))
+    .then(_ => true)
+    .catch(e => e.name === 'NotSupportedError' ? false : true))();
+
+#### 最佳做法
