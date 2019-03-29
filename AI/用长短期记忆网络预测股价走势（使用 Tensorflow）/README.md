@@ -124,3 +124,80 @@ Alpha Vantage。首先，你必须从 这个网站 获取所需的 API key。在
 提示：因为每一个区间都被独立地初始化，所以在两个区间的交界处会引入一个“突变”。为了避免这个“突变”给我们的模型带来大麻烦，这里的每一个区间长度不要太小。
 
 本例中会引入 4 个“突变”，鉴于数据有 11000 组，所以它们无关紧要。
+
+    # 使用训练集来训练换算器 scaler，并且调整数据使之更平滑
+    smoothing_window_size = 2500
+    for di in range(0,10000,smoothing_window_size):
+    scaler.fit(train_data[di:di+smoothing_window_size,:])
+    train_data[di:di+smoothing_window_size,:] = scaler.transform(train_data[di:di+smoothing_window_size,:])
+
+    # 标准化所有的数据
+    scaler.fit(train_data[di+smoothing_window_size:,:])
+    train_data[di+smoothing_window_size:,:] = scaler.transform(train_data[di+smoothing_window_size:,:])
+
+将数据矩阵调整回 [data_size] 的形状。
+
+    # 重新调整测试集和训练集
+    train_data = train_data.reshape(-1)
+
+    # 将测试集标准化
+    test_data = scaler.transform(test_data).reshape(-1)
+
+为了产生一条更平滑的曲线，我们使用一种叫做指数加权平均的算法。
+
+注意：我们只使用训练集来训练换算器 scaler，否则在标准化测试集时将得到不准确的结果。
+
+注意：只允许对训练集做平滑处理。
+
+
+    # 应用指数加权平均
+    # 现在数据将比之间更为平滑
+    EMA = 0.0   
+    gamma = 0.1
+    for ti in range(11000):
+    EMA = gamma*train_data[ti] + (1-gamma)*EMA
+    train_data[ti] = EMA
+
+    # 用于可视化和调试
+    all_mid_data = np.concatenate([train_data,test_data],axis=0)
+
+
+### 评估结果
+
+为了评估训练出来的模型，我们将计算其预测值与真实值的均方误差（MSE）。将每一个预测值与真实值误差的平方取均值，即为这个模型的均方误差。
+
+
+### 股价建模中的平均值
+
+取平均值在预测单步上效果不错，但对股市预测这种需要预测许多步的情形不适用。
+
+
+### 使用 LSTM 预测未来股价走势
+
+长短期记忆网络模型是非常强大的基于时间序列的模型，它们能向后预测任意步。一个 LSTM 模块（或者一个 LSTM 单元）使用 5 个重要的参数来对长期和短期数据建模。
+
+
+- 单元状态（）- 这代表了单元存储的短期和长期记忆；
+- 隐藏状态（）- 这是根据当前输入、以前的隐藏状态和当前单元输入计算的用于预测未来股价的输出状态信息 。此外，隐藏状态还决定着是否- 只使用单元状态中的记忆（短期、长期或两者都使用）来进行下一次预测；
+- 输入门（）- 从输入门流入到单元状态中的信息；
+- 遗忘门（）- 从当前输入和前一个单元状态流到当前单元状态的信息；
+- 输出门（）- 从当前单元状态流到隐藏状态的信息，这决定了 LSTM 接下来使用的记忆类型。
+
+下图展示了一个 LSTM 单元。
+
+![](https://user-gold-cdn.xitu.io/2019/3/7/16958396ef9e84da?imageslim)
+
+
+### 数据生成器
+最简单的想法是将总量为 N 的数据集，平均分割成 N/b 个序列，每个序列包含 b 个数据点。然后我们假想若干个指针，它们指向每一个序列的第一个元素。然后我们就可以开始采样生成数据了。我们将当前段的指针指向的元素下标当作输入，并在其后面的 1~5 个元素中随机挑选一个作为正确的预测值，因为模型并不总是只预测紧靠当前时间点的后一个数据。这样可以有效避免过拟合。每一次取样之后，我们将指针的下标加一，并开始生成下一个数据点。
+
+![](https://user-gold-cdn.xitu.io/2019/3/7/16958396f6f5be97?imageslim)
+
+### 定义超参数
+在本节中，我们将定义若干个超参数。D 是输入的维数。因为你使用前一天的股价来预测后面的股价，所以 D 应当是 1。
+
+num_unrollings 表示单个步骤中考虑的连续时间点个数，越大越好。
+
+然后是 batch_size。它是在单个时间点中考虑的数据样本数量。它越大越好，因为选取的样本数量越大，模型可以参考的数据也就更多。
+最后是 num_nodes 决定了每个单元中包含了多少隐藏神经元。在本例中，网络中包含三层 LSTM。
+
