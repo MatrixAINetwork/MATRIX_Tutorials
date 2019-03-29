@@ -35,3 +35,23 @@
     import numpy as np
     import tensorflow as tf # TensorFlow 1.6 版本下测试通过
     from sklearn.preprocessing import MinMaxScaler
+
+### 下载数据
+
+你可以从以下来源下载数据：
+
+Alpha Vantage。首先，你必须从 这个网站 获取所需的 API key。在此之后，将它的值赋给变量 api_key。
+从 这个页面 下载并将其中的 Stocks 文件夹拷贝到你的工程目录下。
+
+股价中包含几种不同的数据，它们是：
+
+- 开盘价：一天中股票刚开盘时的价格；
+- 收盘价：一天中股票收盘时的价格；
+- 最高价：一天中股价的最大值；
+- 最低价：一天中股价的最小值。
+
+### 从 Alpha Vantage 获取数据
+
+为了从 Alpha Vantage 上下载美国航空公司的股价数据用于分析，你要将行情显示代号 ticker 设置为 "AAL"。同时，你也要定义一个 url_string 变量来获取包含最近 20 年内的全部股价信息的 JSON 文件，以及文件保存路径 file_to_save。别忘了用你的 ticker 变量来帮助你命名你下载下来的文件。
+
+接下来，设定一个条件：如果本地没有保存的数据文件，就从 url_string 指明的 URL 下载数据，并将其中的日期、最低价、最高价、交易量、开盘价和收盘价存入 Pandas 的 DataFrame df 中，再将其保存到 file_to_save；否则直接从本地读取 csv 文件就好了。
