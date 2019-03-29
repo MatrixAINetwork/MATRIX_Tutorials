@@ -55,3 +55,34 @@ Alpha Vantage。首先，你必须从 这个网站 获取所需的 API key。在
 为了从 Alpha Vantage 上下载美国航空公司的股价数据用于分析，你要将行情显示代号 ticker 设置为 "AAL"。同时，你也要定义一个 url_string 变量来获取包含最近 20 年内的全部股价信息的 JSON 文件，以及文件保存路径 file_to_save。别忘了用你的 ticker 变量来帮助你命名你下载下来的文件。
 
 接下来，设定一个条件：如果本地没有保存的数据文件，就从 url_string 指明的 URL 下载数据，并将其中的日期、最低价、最高价、交易量、开盘价和收盘价存入 Pandas 的 DataFrame df 中，再将其保存到 file_to_save；否则直接从本地读取 csv 文件就好了。
+
+### 从 Kaggle 获取数据
+
+
+从 Kaggle 上找到的数据是一系列 csv 表格，你不需要对它进行任何处理就可以直接读入 Pandas 的 DataFrame 中。确保你正确地将 Stocks 文件夹放在项目的主目录中。
+
+
+### 读取数据
+
+现在，将这些数据打印到 DataFrame 中吧！由于数据的顺序在时间序列模型中至关重要，所以请确保你的数据已经按照日期排好序了。
+
+    # 按日期排序
+    df = df.sort_values('Date')
+
+    # 检查结果
+    df.head()
+
+### 数据可视化
+
+看看你的数据，并从中找到伴随时间推移而具有的不同规律。
+
+
+    plt.figure(figsize = (18,9))
+    plt.plot(range(df.shape[0]),(df['Low']+df['High'])/2.0)
+    plt.xticks(range(0,df.shape[0],500),df['Date'].loc[::500],rotation=45)
+    plt.xlabel('Date',fontsize=18)
+    plt.ylabel('Mid Price',fontsize=18)
+    plt.show()
+
+
+![](https://user-gold-cdn.xitu.io/2019/3/7/169583970d0164c3?imageslim)
