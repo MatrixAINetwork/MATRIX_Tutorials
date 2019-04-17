@@ -38,3 +38,31 @@ But the most interesting development was, definitely, the introduction of BERT. 
 
 
 CPU speeds are not growing exponentially any more, but the number of academic papers on Generative Adversarial Networks surely seems to be continuing to grow. GANs have been an academic darling for many years now. The real life applications seem to be few and far between though, and it changed very little in 2018. Still GANs have amazing potential waiting to be realized.
+
+
+A new approach, that emerged, was an idea of progressively growing GANs: getting the generator to increase the resolution of its output progressively throughout the training process. One of the more impressive papers that used this approach was employing style transfer techniques to generate realistic looking photos. How realistic? You tell me:
+
+
+
+ How and why do the GANs really work though? We haven’t had deep insight into that yet, but there are important steps being made: a team at MIT has done a a high quality study of that problem.
+
+Another interesting development, though not technically a GAN, was Adversarial Patch. The idea was to use both black-box (basically, not looking at the internal state of a neural network) and white-box methods to craft a “patch”, that would deceive a CNN-based classifier. This is an important result: it guided us towards better intuition about how DNNs work and how far we are still from a human-level conceptual perception.
+
+
+
+#### We need Reinforcement
+
+Reinforcement learning has been in the spotlight since AlphaGo defeated Lee Sedol in 2016. With AI dominating the last “classic” game though, what else there is to conquer? Well, the rest of the world! Specifically, computer games and robotics.
+
+For it’s training, reinforcement learning relies on the “reward” signal, a scoring of how well it did in it’s last attempt. Computer games provide a natural environment, where such signal is readily available, as opposed to the real life. Hence all the attention RL researches are giving to teaching AI how to play Atari games.
+
+Talking about DeepMind, their new creation, AlphaStar just made news again. This new model has defeated one of the top StarCraft II professional players. StarCraft is much more complex than chess or Go, with a huge action space and crucial information hidden from a player, unlike in most board games. This victory is a very significant leap for the field as a whole.
+
+OpenAI, another important player in the space or RL, did not sit idle either. Their claim to fame is OpenAI Five, a system that in August defeated a team of 99.95th percentile players in Dota 2, an extremely complex esports game.
+
+Though OpenAI has been giving a lot of attention to computer games, they haven’t ignored a real potential application for RL: robots. In real world, the feedback one might give to a robot is rare and expensive to create: you basically need a human babysitting your R2D2, while it’s trying to take its first “steps”. And you need millions of these data points. To bridge that gap, the recent trend was to learn to simulate an environment and run a large number of those scenarios in parallel to teach a robot basic skills, before moving on to the real world. Both OpenAI and Google are working on that approach..
+
+
+#### Honorable mention: Deepfakes
+
+Deepfakes are images or videos that show (usually) a public figure doing or saying something they never did or said. They are created by training a GAN on a large amount of footage of the “target” person, and then generating new media with desired actions performed in it. A desktop application called FakeApp released in January 2018 allows anyone with a computer and zero computer science knowledge to create deepfakes. And while the videos it produces can be easily spotted as non genuine, the technology has progressed very far. Just watch this video to see how much.
