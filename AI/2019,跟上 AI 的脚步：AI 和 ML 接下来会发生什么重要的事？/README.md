@@ -26,3 +26,15 @@ Though before 2018 there had been several breakthroughs in using DNNs for text (
 
 
 The problem was, the techniques used for transfer learning didn’t really apply well to NLP problems. In some sense, the pre-trained embeddings like word2vec were filling that role, but they work on a single word level and fail to capture the high level structure of language.
+
+
+In 2018, however, this has changed. ELMo, contextualized embeddings became the first significant step to improved transfer learning in NLP. ULMFiT went even further: not satisfied with the semantic capturing capability of embeddings, the authors figured out a way to do a transfer learning for the entire model.
+
+
+But the most interesting development was, definitely, the introduction of BERT. By letting the language model learn from the entire collection of articles from English Wikipedia, the team was able to achieve state-of-the-art results on 11 NLP tasks — quite a feat! Even better, both the code and the pre-trained modes were published online — so you can apply this breakthrough to your own problem.
+
+
+#### Many Faces of GANs
+
+
+CPU speeds are not growing exponentially any more, but the number of academic papers on Generative Adversarial Networks surely seems to be continuing to grow. GANs have been an academic darling for many years now. The real life applications seem to be few and far between though, and it changed very little in 2018. Still GANs have amazing potential waiting to be realized.
