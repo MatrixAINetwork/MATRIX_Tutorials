@@ -70,3 +70,16 @@ At this point, I am sure you have found that we are missing something, that is, 
     plt.xlabel('Price')
     plt.ylabel('Count')
     plt.show();
+
+
+In general, the price is more stable and lower when searching Non-Saturday night. And the price goes up when searching Saturday night. Seems this property gets popular during the weekend.
+
+### Clustering-Based Anomaly Detection
+
+    k-means algorithm
+
+
+k-means is a widely used clustering algorithm. It creates ‘k’ similar clusters of data points. Data instances that fall outside of these groups could potentially be marked as anomalies. Before we start k-means clustering, we use elbow method to determine the optimal number of clusters.
+
+
+
